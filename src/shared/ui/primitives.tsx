@@ -12,14 +12,14 @@ const variants: Record<Variant, string> = {
   danger: 'bg-bad-soft text-bad hover:bg-bad/15',
 }
 const sizes: Record<Size, string> = {
-  md: 'h-10 px-4 text-sm',
-  lg: 'h-14 px-6 text-base',
+  md: 'h-9 px-3.5 text-sm',
+  lg: 'h-11 px-5 text-sm',
 }
 
 /** Clases de botón reutilizables también para `<Link>`. */
 export const buttonStyles = (variant: Variant = 'primary', size: Size = 'md', extra?: string) =>
   cn(
-    'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-colors',
+    'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors',
     'disabled:cursor-not-allowed select-none whitespace-nowrap active:scale-[0.98]',
     variants[variant],
     sizes[size],
@@ -49,19 +49,29 @@ const tones: Record<Tone, string> = {
   brand: 'bg-brand-soft text-brand-strong',
 }
 
+const dots: Record<Tone, string> = {
+  neutral: 'bg-muted/60',
+  ok: 'bg-ok',
+  warn: 'bg-warn',
+  bad: 'bg-bad',
+  brand: 'bg-brand',
+}
+
+/** Distintivo de estado: punto de color + texto, como en los paneles de infraestructura. */
 export const Badge = ({ tone = 'neutral', children }: { tone?: Tone; children: ReactNode }) => (
   <span
     className={cn(
-      'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap',
+      'inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium whitespace-nowrap',
       tones[tone],
     )}
   >
+    <span className={cn('size-1.5 rounded-full', dots[tone])} aria-hidden />
     {children}
   </span>
 )
 
 export const Notice = ({ tone = 'warn', children }: { tone?: Tone; children: ReactNode }) => (
-  <div className={cn('flex items-start gap-3 rounded-xl px-4 py-3 text-sm', tones[tone])}>
+  <div className={cn('flex items-start gap-3 rounded-lg px-4 py-3 text-sm', tones[tone])}>
     {children}
   </div>
 )

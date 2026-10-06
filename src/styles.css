@@ -8,9 +8,9 @@
   --color-line: #e7e5e4;
   --color-ink: #1c1917;
   --color-muted: #78716c;
-  --color-brand: #c2410c;
-  --color-brand-strong: #9a3412;
-  --color-brand-soft: #fff1e8;
+  --color-brand: #d9650b;
+  --color-brand-strong: #b04f06;
+  --color-brand-soft: #fff3e6;
   --color-ok: #15803d;
   --color-ok-soft: #e7f5ec;
   --color-warn: #b45309;
@@ -30,7 +30,12 @@
   }
   body {
     min-height: 100dvh;
-    font-size: 15px;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: var(--color-brand-soft);
+    color: var(--color-brand-strong);
   }
   button,
   a,

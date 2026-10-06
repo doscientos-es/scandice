@@ -5,7 +5,7 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react
 import { cn } from './primitives'
 
 const control =
-  'h-10 w-full rounded-xl border border-line bg-surface px-3 text-ink placeholder:text-muted/70 ' +
+  'h-9 w-full rounded-lg border border-line bg-surface px-3 text-ink shadow-sm placeholder:text-muted/70 ' +
   'focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:bg-subtle'
 
 export const Input = ({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) => (
@@ -29,7 +29,7 @@ export function Field({
 }) {
   return (
     <label className={cn('block', className)}>
-      <span className="mb-1.5 block text-xs font-medium tracking-wide text-muted">{label}</span>
+      <span className="mb-1.5 block text-xs font-medium text-ink/80">{label}</span>
       {children}
       {hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}
     </label>
@@ -105,7 +105,7 @@ export function QtyStepper({
   label: string
 }) {
   const btn =
-    'grid size-11 place-items-center rounded-xl border border-line bg-surface transition-colors ' +
+    'grid size-11 place-items-center rounded-lg border border-line bg-surface shadow-sm transition-colors ' +
     'hover:bg-subtle disabled:cursor-not-allowed disabled:opacity-40'
   return (
     <div className="flex items-center gap-2">
