@@ -166,6 +166,7 @@ function AdjustModal({ ingredient, onClose }: { ingredient: Ingredient | null; o
   const save = () => {
     if (!ingredient) return
     actions.adjustIngredient(ingredient.id, { stock, minStock: min })
+    toast('Stock ajustado', { description: ingredient.name })
     onClose()
   }
 
