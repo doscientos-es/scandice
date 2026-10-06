@@ -87,14 +87,19 @@ export function CommandPalette() {
     <div className="fixed inset-0 z-[70] flex items-start justify-center bg-ink/30 px-4 pt-[15vh]" onMouseDown={() => setOpen(false)}>
       <div
         role="dialog"
+        aria-modal="true"
         aria-label="Paleta de comandos"
         className="w-full max-w-lg overflow-hidden rounded-xl border border-line bg-surface shadow-2xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 border-b border-line px-3">
-          <Search className="size-4 text-muted" />
+          <Search className="size-4 text-muted" aria-hidden />
           <input
             ref={inputRef}
+            role="combobox"
+            aria-expanded="true"
+            aria-controls="palette-list"
+            aria-activedescendant={results[active] ? `palette-${results[active].id}` : undefined}
             value={query}
             onChange={(e) => { setQuery(e.target.value); setActive(0) }}
             onKeyDown={(e) => {
@@ -108,12 +113,16 @@ export function CommandPalette() {
           />
           <kbd className="rounded border border-line px-1.5 text-[11px] text-muted">Esc</kbd>
         </div>
-        <ul className="max-h-80 overflow-auto p-1.5">
+        <ul id="palette-list" role="listbox" aria-label="Resultados" className="max-h-80 overflow-auto p-1.5">
           {results.length === 0 && <li className="px-3 py-6 text-center text-sm text-muted">Sin resultados</li>}
           {results.map((c, i) => (
-            <li key={c.id}>
+            <li key={c.id} role="presentation">
               <button
                 type="button"
+                id={`palette-${c.id}`}
+                role="option"
+                aria-selected={i === active}
+                tabIndex={-1}
                 onMouseEnter={() => setActive(i)}
                 onClick={() => choose(c)}
                 className={cn('flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm', i === active && 'bg-subtle')}
