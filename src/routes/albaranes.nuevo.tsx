@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { NoteWizard } from '@/features/albaranes/note-wizard'
 import type { NoteStep } from '@/features/albaranes/note-wizard'
 import type { NoteDraft } from '@/shared/domain/types'
-import { actions, useAppState } from '@/shared/store/store'
+import { stockImpact } from '@/shared/domain/stock'
+import { actions, getState, useAppState } from '@/shared/store/store'
 import { PageHeader } from '@/shared/ui/primitives'
 import { toast } from '@/shared/ui/toast'
 
@@ -40,8 +41,27 @@ function NewNotePage() {
           void navigate({ search: { paso: p === 'subir' ? undefined : p }, replace: true })
         }
         onConfirm={(d) => {
+          const before = getState()
           const note = actions.confirmNote(d)
-          toast('Albarán guardado', { description: `${note.lines.length} líneas sumadas al stock.` })
+          const impact = stockImpact(before.ingredients, getState().ingredients)
+          const parts = [
+            `${note.lines.length} ${note.lines.length === 1 ? 'línea sumada' : 'líneas sumadas'} al stock`,
+            impact.recovered > 0 &&
+            `${impact.recovered} ${impact.recovered === 1 ? 'ingrediente sale' : 'ingredientes salen'} de stock bajo`,
+            impact.created > 0 &&
+            `${impact.created} ${impact.created === 1 ? 'ingrediente nuevo' : 'ingredientes nuevos'}`,
+            impact.stillLow > 0 && `${impact.stillLow} aún por debajo del mínimo`,
+          ].filter(Boolean)
+          toast('Albarán guardado', {
+            description: parts.join(' · '),
+            action: {
+              label: 'Deshacer',
+              onClick: () => {
+                actions.restore(before)
+                void navigate({ to: '/albaranes' })
+              },
+            },
+          })
           void navigate({ to: '/albaranes/$albaranId', params: { albaranId: note.id } })
         }}
       />

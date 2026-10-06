@@ -15,6 +15,30 @@ export function stockLevel(i: Pick<Ingredient, 'stock' | 'minStock'>): StockLeve
 
 export const isLowOrOut = (i: Pick<Ingredient, 'stock' | 'minStock'>) => stockLevel(i) !== 'ok'
 
+export interface StockImpact {
+  /** Ingredientes que estaban en stock bajo/agotado y vuelven a estar correctos. */
+  recovered: number
+  /** Ingredientes creados por el albarán. */
+  created: number
+  /** Ingredientes que siguen por debajo del mínimo tras el cambio. */
+  stillLow: number
+}
+
+/** Compara el stock antes y después de una operación para poder explicar qué ha cambiado. */
+export function stockImpact(before: Ingredient[], after: Ingredient[]): StockImpact {
+  const prev = new Map(before.map((i) => [i.id, i]))
+  let recovered = 0
+  let created = 0
+  let stillLow = 0
+  for (const i of after) {
+    const old = prev.get(i.id)
+    if (!old) created++
+    else if (isLowOrOut(old) && !isLowOrOut(i)) recovered++
+    if (old && isLowOrOut(i) && i.stock !== old.stock) stillLow++
+  }
+  return { recovered, created, stillLow }
+}
+
 export interface NoteLineIssue {
   lineId: string
   message: string

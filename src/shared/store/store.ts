@@ -57,6 +57,8 @@ export const actions = {
     commit(t.adjustIngredient(state, id, patch)),
   saveRecipe: (recipe: Recipe) => commit(t.saveRecipe(state, recipe)),
   deleteRecipe: (id: string) => commit(t.deleteRecipe(state, id)),
+  /** Deshace la última acción volviendo a una foto previa del estado (conserva el rol actual). */
+  restore: (snapshot: AppState) => commit({ ...snapshot, role: state.role }),
   /** Vuelve a los datos de ejemplo conservando el rol elegido. */
   resetDemo: () => commit({ ...createSeedState(), role: state.role }),
 }

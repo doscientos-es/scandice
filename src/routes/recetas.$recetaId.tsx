@@ -1,8 +1,9 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { Printer } from 'lucide-react'
 
 import { RecipeWizard } from '@/features/recetas/recipe-wizard'
 import type { RecipeStep } from '@/features/recetas/recipe-wizard'
-import { actions, useAppState } from '@/shared/store/store'
+import { actions, getState, useAppState } from '@/shared/store/store'
 import { EmptyState, PageHeader, buttonStyles } from '@/shared/ui/primitives'
 import { toast } from '@/shared/ui/toast'
 
@@ -34,7 +35,16 @@ function EditRecipePage() {
 
   return (
     <>
-      <PageHeader title={recipe.name} description="Edita la receta; los cambios se aplican al guardar." />
+      <PageHeader
+        title={recipe.name}
+        description="Edita la receta; los cambios se aplican al guardar."
+        actions={
+          <button type="button" onClick={() => window.print()} className={`${buttonStyles('secondary')} print:hidden`}>
+            <Printer className="size-4" />
+            Imprimir
+          </button>
+        }
+      />
       <RecipeWizard
         key={recipe.id}
         initial={recipe}
@@ -49,8 +59,13 @@ function EditRecipePage() {
           void navigate({ to: '/recetas' })
         }}
         onDelete={() => {
+          const before = getState()
           actions.deleteRecipe(recipe.id)
-          toast('Receta eliminada', { description: recipe.name, tone: 'warn' })
+          toast('Receta eliminada', {
+            description: recipe.name,
+            tone: 'warn',
+            action: { label: 'Deshacer', onClick: () => actions.restore(before) },
+          })
           void navigate({ to: '/recetas' })
         }}
       />

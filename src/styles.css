@@ -71,6 +71,30 @@
   }
 }
 
+@media print {
+  aside,
+  header,
+  body > div nav,
+  [role='status'] {
+    display: none !important;
+  }
+  .lg\:grid {
+    display: block !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+}
+
+@keyframes scan-line {
+  from {
+    top: 0;
+  }
+  to {
+    top: calc(100% - 2px);
+  }
+}
+
 @keyframes page-in {
   from {
     opacity: 0;

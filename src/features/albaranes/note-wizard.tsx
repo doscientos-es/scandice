@@ -1,4 +1,4 @@
-import { Loader2, Sparkles, Trash2, Upload } from 'lucide-react'
+import { Sparkles, Trash2, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 
 import { packTotal, validateDraft } from '@/shared/domain/stock'
@@ -21,6 +21,23 @@ const STEPS: Step<NoteStep>[] = [
 ]
 
 const NEW = '__new__'
+
+/** Hoja con líneas de texto y una barra que la recorre: simula la lectura de la IA. */
+function ScanSheet() {
+  return (
+    <div className="relative h-24 w-20 overflow-hidden rounded-md border border-line bg-surface p-2 shadow-sm" aria-hidden>
+      <div className="space-y-1.5">
+        {[100, 80, 90, 60, 85, 70].map((w, i) => (
+          <div key={i} className="h-1.5 rounded-full bg-subtle" style={{ width: `${w}%` }} />
+        ))}
+      </div>
+      <div
+        className="absolute inset-x-0 h-0.5 bg-brand shadow-[0_0_8px_var(--color-brand)]"
+        style={{ animation: 'scan-line 1.2s ease-in-out infinite alternate' }}
+      />
+    </div>
+  )
+}
 
 interface Props {
   draft: NoteDraft | null
@@ -72,7 +89,7 @@ export function NoteWizard({ draft, setDraft, step, ingredients, onStep, onConfi
                   onClick={() => fileRef.current?.click()}
                   className="flex w-full flex-col items-center gap-2 rounded-card border-2 border-dashed border-line px-6 py-14 text-muted transition-colors hover:border-brand hover:text-ink disabled:opacity-60"
                 >
-                  {scanning ? <Loader2 className="size-8 animate-spin text-brand" /> : <Upload className="size-8" />}
+                  {scanning ? <ScanSheet /> : <Upload className="size-8" />}
                   <span className="font-medium">{scanning ? 'La IA está leyendo el albarán…' : 'Toca para elegir una foto o PDF'}</span>
                 </button>
                 <input ref={fileRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void scan(f.name); e.target.value = '' }} />

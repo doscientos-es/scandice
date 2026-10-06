@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { toCsv } from './csv'
 import { flattenRecipe, maxPortions, needsForSales, shortagesOf } from './recipes'
 import { createSeedState } from './seed'
 import { packTotal, stockLevel, validateDraft } from './stock'
@@ -103,4 +104,11 @@ describe('transiciones', () => {
     expect(stockLevel({ stock: 5, minStock: 5 })).toBe('low')
     expect(stockLevel({ stock: 6, minStock: 5 })).toBe('ok')
   })
+
+  it('exporta CSV con ; coma decimal y comillas escapadas', () => {
+    expect(toCsv([['a;b', 'dice "hola"', 1.5, null], ['x', 2, 3, 'y']])).toBe(
+      '"a;b";"dice ""hola""";1,5;\r\nx;2;3;y',
+    )
+  })
+
 })

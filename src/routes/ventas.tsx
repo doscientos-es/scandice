@@ -6,7 +6,8 @@ import { needsForSales, shortagesOf } from '@/shared/domain/recipes'
 import { stockLevel } from '@/shared/domain/stock'
 import type { Ingredient, SaleLine } from '@/shared/domain/types'
 import { formatMoney, formatQty } from '@/shared/domain/units'
-import { actions, useAppState } from '@/shared/store/store'
+import { actions, getState, useAppState } from '@/shared/store/store'
+import { toast } from '@/shared/ui/toast'
 import { QtyStepper } from '@/shared/ui/form'
 import { Badge, Button, Card, EmptyState, Notice, PageHeader, buttonStyles, cn } from '@/shared/ui/primitives'
 import { SplitLayout } from '@/shared/ui/stepper'
@@ -45,9 +46,20 @@ function SalesPage() {
   const confirm = () => {
     const after = state.ingredients.map((i) => ({ ...i, stock: i.stock - (needs.get(i.id) ?? 0) }))
     const warnings = after.filter((i) => needs.has(i.id) && stockLevel(i) !== 'ok')
+    const before = getState()
     actions.registerSales(lines)
     setDone({ total, warnings })
     setCart({})
+    toast('Ventas registradas', {
+      description: formatMoney(total),
+      action: {
+        label: 'Deshacer',
+        onClick: () => {
+          actions.restore(before)
+          setDone(null)
+        },
+      },
+    })
   }
 
   return (

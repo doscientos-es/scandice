@@ -2,12 +2,14 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Pencil, Search } from 'lucide-react'
 import { useState } from 'react'
 
+import { downloadCsv, todayStamp } from '@/shared/domain/csv'
 import { stockLevel } from '@/shared/domain/stock'
 import type { StockLevel } from '@/shared/domain/stock'
 import type { Ingredient } from '@/shared/domain/types'
 import { formatDateTime, formatQty, unitMeta } from '@/shared/domain/units'
-import { actions, useAppState } from '@/shared/store/store'
+import { actions, getState, useAppState } from '@/shared/store/store'
 import { NumberInput, Field, Input } from '@/shared/ui/form'
+import { ExportActions } from '@/shared/ui/export-actions'
 import { Modal } from '@/shared/ui/modal'
 import { Badge, Button, Card, EmptyState, PageHeader, StockBar, Tabs, cn } from '@/shared/ui/primitives'
 import { toast } from '@/shared/ui/toast'
@@ -58,11 +60,33 @@ function StockPage() {
         : { vista: undefined, estado: id === 'bajo' ? 'bajo' : undefined },
     )
 
+  const exportCsv = () => {
+    if (vista === 'movimientos') {
+      downloadCsv(`movimientos-${todayStamp()}`, [
+        ['Fecha', 'Ingrediente', 'Motivo', 'Cantidad', 'Unidad'],
+        ...state.movements.map((m) => {
+          const ing = state.ingredients.find((i) => i.id === m.ingredientId)
+          return [m.at, ing?.name, m.label, m.delta, ing?.unit]
+        }),
+      ])
+      return
+    }
+    downloadCsv(`stock-${todayStamp()}`, [
+      ['Ingrediente', 'Categoría', 'Unidad', 'Stock', 'Mínimo', 'Estado'],
+      ...rows.map((i) => [i.name, i.category, i.unit, i.stock, i.minStock, levelBadge[stockLevel(i)].label]),
+    ])
+    toast('Stock exportado', { description: `${rows.length} ingredientes en CSV.` })
+  }
+
   return (
     <>
-      <PageHeader title="Stock" description="Siempre en la unidad mínima: unidades, gramos o mililitros." />
+      <PageHeader
+        title="Stock"
+        description="Siempre en la unidad mínima: unidades, gramos o mililitros."
+        actions={<ExportActions onExport={exportCsv} />}
+      />
 
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3 print:hidden">
         <Tabs
           value={tabValue}
           onChange={onTab}
@@ -79,6 +103,7 @@ function StockPage() {
               className="pl-9"
               placeholder="Buscar ingrediente…"
               aria-label="Buscar ingrediente"
+              data-search
               defaultValue={search.q}
               onChange={(e) => set({ q: e.target.value || undefined })}
             />
@@ -136,7 +161,7 @@ function StockPage() {
                   <StockBar stock={i.stock} min={i.minStock} />
                 </div>
                 <Badge tone={badge.tone}>{badge.label}</Badge>
-                <Button variant="ghost" aria-label={`Ajustar ${i.name}`} onClick={() => setEditing(i)}>
+                <Button variant="ghost" className="print:hidden" aria-label={`Ajustar ${i.name}`} onClick={() => setEditing(i)}>
                   <Pencil className="size-4" />
                 </Button>
               </div>
@@ -166,8 +191,12 @@ function AdjustModal({ ingredient, onClose }: { ingredient: Ingredient | null; o
   const unit = ingredient ? unitMeta[ingredient.unit].label : ''
   const save = () => {
     if (!ingredient) return
+    const before = getState()
     actions.adjustIngredient(ingredient.id, { stock, minStock: min })
-    toast('Stock ajustado', { description: ingredient.name })
+    toast('Stock ajustado', {
+      description: ingredient.name,
+      action: { label: 'Deshacer', onClick: () => actions.restore(before) },
+    })
     onClose()
   }
 

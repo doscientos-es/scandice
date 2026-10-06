@@ -9,12 +9,14 @@ import {
   ScanLine,
   ShoppingBag,
 } from 'lucide-react'
+import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 
 import { roleById } from '../domain/roles'
 import type { Section } from '../domain/roles'
 import { isLowOrOut } from '../domain/stock'
 import { actions, useAppState } from '../store/store'
+import { CommandPalette } from '../ui/command-palette'
 import { cn } from '../ui/primitives'
 
 const NAV = [
@@ -32,6 +34,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const lowCount = state.ingredients.filter(isLowOrOut).length
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const current = NAV.find((n) => (n.to === '/' ? pathname === '/' : pathname.startsWith(n.to)))
+
+  useEffect(() => {
+    document.title = current ? `${current.label} · ScanDice` : 'ScanDice'
+  }, [current])
 
   const linkClass = (active: boolean) =>
     cn(
@@ -119,7 +125,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           <span className="text-muted">ScanDice</span>
           <span className="text-muted/50">/</span>
           <span className="font-medium">{current?.label ?? 'Inicio'}</span>
-          <span className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-0.5 text-xs text-muted">
+          <span className="ml-auto hidden items-center gap-1 text-xs text-muted sm:inline-flex">
+            <kbd className="rounded border border-line px-1.5">Ctrl</kbd>
+            <kbd className="rounded border border-line px-1.5">K</kbd>
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-0.5 text-xs text-muted">
             <span className="size-1.5 rounded-full bg-ok" aria-hidden />
             {role?.label}
           </span>
@@ -146,6 +156,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
         ))}
       </nav>
+      <CommandPalette />
     </div>
   )
 }

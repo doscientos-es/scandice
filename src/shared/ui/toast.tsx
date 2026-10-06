@@ -7,6 +7,7 @@ interface ToastItem {
   tone: ToastTone
   title: string
   description?: string
+  action?: { label: string; onClick: () => void }
 }
 
 let items: ToastItem[] = []
@@ -19,12 +20,20 @@ const dismiss = (id: number) => {
   emit()
 }
 
-/** Muestra un aviso breve que desaparece solo a los 4 s. */
-export function toast(title: string, opts: { description?: string; tone?: ToastTone } = {}) {
+/**
+ * Muestra un aviso breve que desaparece solo (4 s; 7 s si lleva acción, p. ej. «Deshacer»).
+ */
+export function toast(
+  title: string,
+  opts: { description?: string; tone?: ToastTone; action?: ToastItem['action'] } = {},
+) {
   const id = nextId++
-  items = [...items, { id, tone: opts.tone ?? 'ok', title, description: opts.description }].slice(-3)
+  items = [
+    ...items,
+    { id, tone: opts.tone ?? 'ok', title, description: opts.description, action: opts.action },
+  ].slice(-3)
   emit()
-  setTimeout(() => dismiss(id), 4000)
+  setTimeout(() => dismiss(id), opts.action ? 7000 : 4000)
 }
 
 const subscribe = (l: () => void) => {
@@ -52,6 +61,18 @@ export function Toaster() {
               <p className="font-medium">{t.title}</p>
               {t.description && <p className="mt-0.5 text-muted">{t.description}</p>}
             </div>
+            {t.action && (
+              <button
+                type="button"
+                onClick={() => {
+                  t.action?.onClick()
+                  dismiss(t.id)
+                }}
+                className="cursor-pointer rounded-md px-2 py-0.5 text-sm font-medium text-brand hover:bg-brand-soft"
+              >
+                {t.action.label}
+              </button>
+            )}
             <button
               type="button"
               aria-label="Cerrar aviso"
