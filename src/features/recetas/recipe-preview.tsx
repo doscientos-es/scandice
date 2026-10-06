@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { Layers } from 'lucide-react'
 
 import { flattenRecipe, maxPortions, recipeCost } from '@/shared/domain/recipes'
@@ -76,7 +77,7 @@ export function RecipePreview({
               const ing = byId(item.refId)
               return (
                 <li key={`i-${item.refId}`} className="flex items-center justify-between gap-2">
-                  <span>{ing?.name ?? '—'}</span>
+                  {ing ? <IngredientLink ingredient={ing} /> : <span>—</span>}
                   <span className="tabular text-muted">{ing && formatQty(item.quantity, ing.unit)}</span>
                 </li>
               )
@@ -102,7 +103,7 @@ export function RecipePreview({
               const short = qty > ing.stock
               return (
                 <li key={id} className="flex items-center justify-between gap-2">
-                  <span className={cn(limiting?.id === id && 'font-medium')}>{ing.name}</span>
+                  <IngredientLink ingredient={ing} className={cn(limiting?.id === id && 'font-medium')} />
                   <span className={cn('tabular', short ? 'text-bad' : 'text-muted')}>
                     {formatQty(qty, ing.unit)} <span className="opacity-60">de {formatQty(ing.stock, ing.unit)}</span>
                   </span>
@@ -115,6 +116,19 @@ export function RecipePreview({
     </Card>
   )
 }
+
+/** Enlace al detalle del ingrediente. Se abre en otra pestaña para no perder una receta sin guardar. */
+const IngredientLink = ({ ingredient, className }: { ingredient: Ingredient; className?: string }) => (
+  <Link
+    to="/ingredientes/$ingredientId"
+    params={{ ingredientId: ingredient.id }}
+    target="_blank"
+    rel="noopener"
+    className={cn('hover:text-brand hover:underline', className)}
+  >
+    {ingredient.name}
+  </Link>
+)
 
 const Stat = ({ label, value }: { label: string; value: string }) => (
   <div className="px-3 py-3">
