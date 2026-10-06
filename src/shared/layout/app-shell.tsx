@@ -72,7 +72,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Link to="/" className="mb-5 flex items-center gap-2.5 rounded-lg px-2 py-1.5">
           <span className="min-w-0 leading-tight">
             <span className="block text-sm font-semibold">ScanDice</span>
-            <span className="block text-xs text-muted">Restaurante · demo</span>
+            <span className="block text-xs text-muted">Restaurante</span>
           </span>
         </Link>
 

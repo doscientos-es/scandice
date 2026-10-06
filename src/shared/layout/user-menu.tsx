@@ -1,12 +1,10 @@
-import { ChevronsUpDown, LogOut, RotateCcw, Settings } from 'lucide-react'
+import { ChevronsUpDown, LogOut, Settings } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
-import { actions } from '../store/store'
 import { cn } from '../ui/primitives'
 import { toast } from '../ui/toast'
 
-/** Usuario simulado: la app se comporta como un SaaS con sesión iniciada. */
-const USER = { name: 'Gerard', email: 'gerard@scandice.app', plan: 'Restaurante · demo' }
+const USER = { name: 'Gerard', email: 'gerard@scandice.app', plan: 'Restaurante' }
 
 /** Botón de usuario con menú. `full` muestra nombre y correo (barra lateral); `up` abre hacia arriba. */
 export function UserMenu({ full = false, up = false }: { full?: boolean; up?: boolean }) {
@@ -79,7 +77,7 @@ export function UserMenu({ full = false, up = false }: { full?: boolean; up?: bo
               type="button"
               role="menuitem"
               className={item}
-              onClick={run(() => toast('Ajustes de cuenta', { description: 'Disponible en la versión completa.' }))}
+              onClick={run(() => toast('Ajustes de cuenta', { description: 'No hay ajustes disponibles por ahora.' }))}
             >
               <Settings className="size-4 text-muted" />
               Ajustes de cuenta
@@ -88,16 +86,7 @@ export function UserMenu({ full = false, up = false }: { full?: boolean; up?: bo
               type="button"
               role="menuitem"
               className={item}
-              onClick={run(() => window.confirm('¿Volver a los datos de ejemplo?') && actions.resetDemo())}
-            >
-              <RotateCcw className="size-4 text-muted" />
-              Reiniciar datos de ejemplo
-            </button>
-            <button
-              type="button"
-              role="menuitem"
-              className={item}
-              onClick={run(() => toast('Sesión de demostración', { description: 'No hay sesión real que cerrar.' }))}
+              onClick={run(() => toast('Cerrar sesión', { description: 'No se pudo cerrar la sesión. Inténtalo de nuevo.' }))}
             >
               <LogOut className="size-4 text-muted" />
               Cerrar sesión

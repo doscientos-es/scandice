@@ -112,7 +112,6 @@ export function NoteWizard({ draft, setDraft, step, ingredients, onStep, onConfi
                 <Button variant="secondary" className="w-full" disabled={scanning} onClick={() => void scan('albaran-ejemplo.jpg')}>
                   <Sparkles className="size-4" /> Usar un albarán de ejemplo
                 </Button>
-                <p className="text-xs text-muted">Demo: el análisis es simulado, no se envía nada fuera de tu navegador.</p>
               </div>
             )}
 
