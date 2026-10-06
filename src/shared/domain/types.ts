@@ -58,6 +58,8 @@ export interface NoteDraft {
   number: string
   date: string
   fileName: string | null
+  /** Miniatura de la foto (data URL). En la demo puede ser un albarán dibujado. */
+  photo?: string | null
   lines: NoteLine[]
 }
 

@@ -16,6 +16,7 @@ import { Route as VentasRouteImport } from './routes/ventas'
 import { Route as AlbaranesIndexRouteImport } from './routes/albaranes.index'
 import { Route as AlbaranesAlbaranIdRouteImport } from './routes/albaranes.$albaranId'
 import { Route as AlbaranesNuevoRouteImport } from './routes/albaranes.nuevo'
+import { Route as IngredientesIngredientIdRouteImport } from './routes/ingredientes.$ingredientId'
 import { Route as RecetasIndexRouteImport } from './routes/recetas.index'
 import { Route as RecetasRecetaIdRouteImport } from './routes/recetas.$recetaId'
 import { Route as RecetasNuevaRouteImport } from './routes/recetas.nueva'
@@ -55,6 +56,12 @@ const AlbaranesNuevoRoute = AlbaranesNuevoRouteImport.update({
   path: '/albaranes/nuevo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IngredientesIngredientIdRoute =
+  IngredientesIngredientIdRouteImport.update({
+    id: '/ingredientes/$ingredientId',
+    path: '/ingredientes/$ingredientId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const RecetasIndexRoute = RecetasIndexRouteImport.update({
   id: '/recetas/',
   path: '/recetas/',
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/ventas': typeof VentasRoute
   '/albaranes/$albaranId': typeof AlbaranesAlbaranIdRoute
   '/albaranes/nuevo': typeof AlbaranesNuevoRoute
+  '/ingredientes/$ingredientId': typeof IngredientesIngredientIdRoute
   '/recetas/$recetaId': typeof RecetasRecetaIdRoute
   '/recetas/nueva': typeof RecetasNuevaRoute
   '/albaranes/': typeof AlbaranesIndexRoute
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
   '/ventas': typeof VentasRoute
   '/albaranes/$albaranId': typeof AlbaranesAlbaranIdRoute
   '/albaranes/nuevo': typeof AlbaranesNuevoRoute
+  '/ingredientes/$ingredientId': typeof IngredientesIngredientIdRoute
   '/recetas/$recetaId': typeof RecetasRecetaIdRoute
   '/recetas/nueva': typeof RecetasNuevaRoute
   '/albaranes': typeof AlbaranesIndexRoute
@@ -103,6 +112,7 @@ export interface FileRoutesById {
   '/ventas': typeof VentasRoute
   '/albaranes/$albaranId': typeof AlbaranesAlbaranIdRoute
   '/albaranes/nuevo': typeof AlbaranesNuevoRoute
+  '/ingredientes/$ingredientId': typeof IngredientesIngredientIdRoute
   '/recetas/$recetaId': typeof RecetasRecetaIdRoute
   '/recetas/nueva': typeof RecetasNuevaRoute
   '/albaranes/': typeof AlbaranesIndexRoute
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/ventas'
     | '/albaranes/$albaranId'
     | '/albaranes/nuevo'
+    | '/ingredientes/$ingredientId'
     | '/recetas/$recetaId'
     | '/recetas/nueva'
     | '/albaranes/'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/ventas'
     | '/albaranes/$albaranId'
     | '/albaranes/nuevo'
+    | '/ingredientes/$ingredientId'
     | '/recetas/$recetaId'
     | '/recetas/nueva'
     | '/albaranes'
@@ -141,6 +153,7 @@ export interface FileRouteTypes {
     | '/ventas'
     | '/albaranes/$albaranId'
     | '/albaranes/nuevo'
+    | '/ingredientes/$ingredientId'
     | '/recetas/$recetaId'
     | '/recetas/nueva'
     | '/albaranes/'
@@ -154,6 +167,7 @@ export interface RootRouteChildren {
   VentasRoute: typeof VentasRoute
   AlbaranesAlbaranIdRoute: typeof AlbaranesAlbaranIdRoute
   AlbaranesNuevoRoute: typeof AlbaranesNuevoRoute
+  IngredientesIngredientIdRoute: typeof IngredientesIngredientIdRoute
   RecetasRecetaIdRoute: typeof RecetasRecetaIdRoute
   RecetasNuevaRoute: typeof RecetasNuevaRoute
   AlbaranesIndexRoute: typeof AlbaranesIndexRoute
@@ -211,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AlbaranesNuevoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ingredientes/$ingredientId': {
+      id: '/ingredientes/$ingredientId'
+      path: '/ingredientes/$ingredientId'
+      fullPath: '/ingredientes/$ingredientId'
+      preLoaderRoute: typeof IngredientesIngredientIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recetas/': {
       id: '/recetas/'
       path: '/recetas'
@@ -242,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   VentasRoute: VentasRoute,
   AlbaranesAlbaranIdRoute: AlbaranesAlbaranIdRoute,
   AlbaranesNuevoRoute: AlbaranesNuevoRoute,
+  IngredientesIngredientIdRoute: IngredientesIngredientIdRoute,
   RecetasRecetaIdRoute: RecetasRecetaIdRoute,
   RecetasNuevaRoute: RecetasNuevaRoute,
   AlbaranesIndexRoute: AlbaranesIndexRoute,

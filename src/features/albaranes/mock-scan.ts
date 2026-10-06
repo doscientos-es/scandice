@@ -47,9 +47,44 @@ const SAMPLES: Array<() => NoteDraft> = [
 
 let next = 0
 
-export function simulateScan(fileName: string): Promise<NoteDraft> {
+/** Albarán dibujado como imagen: es la "foto" falsa cuando no hay una imagen real. */
+function fakePhoto(draft: NoteDraft): string {
+  const esc = (s: string) => s.replace(/[<&>]/g, '')
+  const rows = draft.lines
+    .map((l, i) => `<text x="24" y="${130 + i * 26}" font-size="13">${esc(l.description).slice(0, 34)}</text><text x="296" y="${130 + i * 26}" font-size="13" text-anchor="end">${l.lineTotal.toFixed(2)}</text>`)
+    .join('')
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="${180 + draft.lines.length * 26}" font-family="monospace" fill="#333"><rect width="100%" height="100%" fill="#fbfaf6"/><text x="24" y="40" font-size="16" font-weight="bold">${esc(draft.supplier)}</text><text x="24" y="64" font-size="12">Albaran ${esc(draft.number)}</text><text x="24" y="84" font-size="12">${draft.date}</text><line x1="24" x2="296" y1="104" y2="104" stroke="#999"/>${rows}</svg>`
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
+
+/** Reduce una imagen real a una miniatura JPEG para que quepa en localStorage. */
+function thumbnail(file: File): Promise<string | null> {
+  if (!file.type.startsWith('image/')) return Promise.resolve(null)
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      const scale = Math.min(1, 640 / Math.max(img.width, img.height))
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height)
+      URL.revokeObjectURL(url)
+      resolve(canvas.toDataURL('image/jpeg', 0.6))
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      resolve(null)
+    }
+    img.src = url
+  })
+}
+
+export async function simulateScan(fileName: string, file?: File): Promise<NoteDraft> {
   const draft = SAMPLES[next++ % SAMPLES.length]!()
-  return new Promise((resolve) =>
-    setTimeout(() => resolve({ ...draft, fileName }), 1800),
-  )
+  const [photo] = await Promise.all([
+    file ? thumbnail(file) : Promise.resolve(null),
+    new Promise((resolve) => setTimeout(resolve, 1800)),
+  ])
+  return { ...draft, fileName, photo: photo ?? fakePhoto(draft) }
 }

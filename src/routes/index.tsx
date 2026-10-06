@@ -5,7 +5,8 @@ import { useMemo } from 'react'
 import { canAccess, roleById } from '@/shared/domain/roles'
 import { maxPortions } from '@/shared/domain/recipes'
 import { isLowOrOut } from '@/shared/domain/stock'
-import { formatDate, formatMoney, formatQty } from '@/shared/domain/units'
+import { recentRises } from '@/shared/domain/prices'
+import { formatDate, formatMoney, formatQty, unitMeta } from '@/shared/domain/units'
 import { useAppState } from '@/shared/store/store'
 import { Badge, Card, PageHeader, StockBar, buttonStyles } from '@/shared/ui/primitives'
 
@@ -23,6 +24,7 @@ function Dashboard() {
         .sort((a, b) => a.portions - b.portions),
     [state.recipes, state.ingredients],
   )
+  const rises = useMemo(() => recentRises(state.notes, state.ingredients), [state.notes, state.ingredients])
   const stockValue = state.ingredients.reduce((sum, i) => sum + i.stock * i.costPerUnit, 0)
 
   const actions = [
@@ -113,6 +115,32 @@ function Dashboard() {
             ))}
           </ul>
         </section>
+
+        {canAccess(state.role, 'albaranes') && rises.length > 0 && (
+          <section className="lg:col-span-2">
+            <h2 className="mb-1 border-b border-line pb-3 text-sm font-semibold">Subidas de precio</h2>
+            <ul className="divide-y divide-line">
+              {rises.map((r) => (
+                <li key={r.ingredient.id}>
+                  <Link
+                    to="/albaranes/$albaranId"
+                    params={{ albaranId: r.noteId }}
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5 text-sm hover:text-brand"
+                  >
+                    <span className="font-medium">{r.ingredient.name}</span>
+                    <Badge tone="bad">+{(r.pct * 100).toFixed(1).replace('.', ',')} %</Badge>
+                    <span className="tabular text-muted">
+                      {formatMoney(r.previous * unitMeta[r.ingredient.unit].scale)} →{' '}
+                      {formatMoney(r.current * unitMeta[r.ingredient.unit].scale)} /{' '}
+                      {unitMeta[r.ingredient.unit].bigLabel}
+                    </span>
+                    <span className="ml-auto text-muted">{r.supplier}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {canAccess(state.role, 'albaranes') && (
           <section className="lg:col-span-2">

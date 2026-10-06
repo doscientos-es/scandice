@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { toCsv } from './csv'
+import { lineChange, priceHistory, priceStats, recentRises } from './prices'
 import { flattenRecipe, maxPortions, needsForSales, shortagesOf } from './recipes'
 import { createSeedState } from './seed'
 import { packTotal, shoppingList, stockLevel, validateDraft } from './stock'
@@ -145,4 +146,30 @@ describe('transiciones', () => {
     )
   })
 
+})
+
+
+describe('precios', () => {
+  it('detecta la subida respecto al albarán anterior del mismo ingrediente', () => {
+    const base = createSeedState()
+    const first = confirmNote(base, { ...draft([line({ lineTotal: 9 })]), date: '2026-10-01' })
+    const second = confirmNote(first.state, { ...draft([line({ lineTotal: 10.8 })]), date: '2026-10-05' })
+    const ch = lineChange(second.note.lines[0], second.state.notes, { date: '2026-10-05', noteId: second.note.id })
+    expect(ch?.pct).toBeCloseTo(0.2)
+    expect(ch?.previousDate).toBe('2026-10-01')
+    expect(recentRises(second.state.notes, second.state.ingredients)[0].ingredient.id).toBe('cola')
+    expect(lineChange(first.note.lines[0], second.state.notes, { date: '2026-10-01', noteId: first.note.id })).toBeNull()
+  })
+
+  it('historial y estadísticas de un ingrediente', () => {
+    const s1 = confirmNote(createSeedState(), { ...draft([line({ lineTotal: 9 })]), date: '2026-10-05' })
+    const s2 = confirmNote(s1.state, { ...draft([line({ lineTotal: 7.2 })]), date: '2026-10-01' })
+    const points = priceHistory(s2.state.notes, 'cola')
+    expect(points.map((p) => p.date)).toEqual(['2026-10-01', '2026-10-05'])
+    const stats = priceStats(points)!
+    expect(stats).toMatchObject({ purchases: 2, totalQty: 18, min: 0.8, max: 1 })
+    expect(stats.totalSpent).toBeCloseTo(16.2)
+    expect(stats.trend).toBeCloseTo(0.25)
+    expect(priceStats(priceHistory(s2.state.notes, 'nada'))).toBeNull()
+  })
 })

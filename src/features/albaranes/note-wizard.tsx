@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { packTotal, validateDraft } from '@/shared/domain/stock'
 import type { Ingredient, NoteDraft, NoteLine } from '@/shared/domain/types'
 import { UNITS, formatQty, unitMeta } from '@/shared/domain/units'
+import { useAppState } from '@/shared/store/store'
 import { Field, Input, NumberInput, Select } from '@/shared/ui/form'
 import { Badge, Button, Card, Notice, cn } from '@/shared/ui/primitives'
 import { SplitLayout, Stepper } from '@/shared/ui/stepper'
@@ -49,14 +50,15 @@ interface Props {
 }
 
 export function NoteWizard({ draft, setDraft, step, ingredients, onStep, onConfirm }: Props) {
+  const notes = useAppState().notes
   const [scanning, setScanning] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const index = STEPS.findIndex((s) => s.id === step)
   const issues = draft ? validateDraft(draft) : []
 
-  const scan = async (name: string) => {
+  const scan = async (name: string, file?: File) => {
     setScanning(true)
-    const result = await simulateScan(name)
+    const result = await simulateScan(name, file)
     setScanning(false)
     setDraft(result)
     onStep('lineas')
@@ -77,7 +79,7 @@ export function NoteWizard({ draft, setDraft, step, ingredients, onStep, onConfi
     <>
       <Stepper steps={STEPS} current={step} maxReached={draft ? 2 : 0} onSelect={onStep} />
       <SplitLayout
-        preview={<NotePreview draft={draft} ingredients={ingredients} />}
+        preview={<NotePreview draft={draft} ingredients={ingredients} compare={{ notes }} />}
         form={
           <Card className="p-5">
             {step === 'subir' && (
@@ -92,7 +94,7 @@ export function NoteWizard({ draft, setDraft, step, ingredients, onStep, onConfi
                   {scanning ? <ScanSheet /> : <Upload className="size-8" />}
                   <span className="font-medium">{scanning ? 'La IA está leyendo el albarán…' : 'Toca para elegir una foto o PDF'}</span>
                 </button>
-                <input ref={fileRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void scan(f.name); e.target.value = '' }} />
+                <input ref={fileRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void scan(f.name, f); e.target.value = '' }} />
                 <Button variant="secondary" className="w-full" disabled={scanning} onClick={() => void scan('albaran-ejemplo.jpg')}>
                   <Sparkles className="size-4" /> Usar un albarán de ejemplo
                 </Button>

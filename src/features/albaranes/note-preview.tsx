@@ -1,8 +1,9 @@
 import { ArrowRight, FileText } from 'lucide-react'
 
+import { lineChange } from '@/shared/domain/prices'
 import { packTotal } from '@/shared/domain/stock'
-import type { Ingredient, NoteDraft } from '@/shared/domain/types'
-import { formatDate, formatMoney, formatQty } from '@/shared/domain/units'
+import type { DeliveryNote, Ingredient, NoteDraft } from '@/shared/domain/types'
+import { formatDate, formatMoney, formatQty, unitMeta } from '@/shared/domain/units'
 import { Badge, Card } from '@/shared/ui/primitives'
 
 /** Resultado en directo: cuánto sube el stock de cada ingrediente. */
@@ -10,10 +11,13 @@ export function NotePreview({
   draft,
   ingredients,
   showStock = true,
+  compare,
 }: {
   draft: NoteDraft | null
   ingredients: Ingredient[]
   showStock?: boolean
+  /** Albaranes guardados con los que comparar precios; `noteId` si el albarán ya está guardado. */
+  compare?: { notes: DeliveryNote[]; noteId?: string }
 }) {
   if (!draft) {
     return (
@@ -41,6 +45,14 @@ export function NotePreview({
           const unit = ing?.unit ?? l.newIngredient?.unit ?? 'ud'
           const add = packTotal(l)
           const before = ing?.stock ?? 0
+          // Borrador: se compara con el último coste conocido. Albarán guardado: solo con albaranes anteriores.
+          const change = compare
+            ? lineChange(l, compare.notes, {
+              date: draft.date || '9999-12-31',
+              noteId: compare.noteId,
+              fallback: compare.noteId ? undefined : ing?.costPerUnit,
+            })
+            : null
           return (
             <li key={l.id} className="px-5 py-3 text-sm">
               <div className="flex items-center justify-between gap-2">
@@ -50,6 +62,20 @@ export function NotePreview({
               <p className="tabular mt-0.5 flex flex-wrap items-center gap-x-2 text-muted">
                 {l.packs} × {l.unitsPerPack} × {formatQty(l.sizePerUnit, unit)} = <b className="text-ink">+{formatQty(add, unit)}</b>
               </p>
+              {change && ing && (
+                <p className="tabular mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+                  <Badge tone={change.pct > 0 ? 'bad' : 'ok'}>
+                    {change.pct > 0 ? '↑' : '↓'} {change.pct > 0 ? '+' : ''}
+                    {(change.pct * 100).toFixed(1).replace('.', ',')} %
+                  </Badge>
+                  {formatMoney(change.previous * unitMeta[ing.unit].scale)} →{' '}
+                  <b className="text-ink">{formatMoney(change.current * unitMeta[ing.unit].scale)}</b> /{' '}
+                  {unitMeta[ing.unit].bigLabel}
+                  {change.previousDate
+                    ? ` · antes ${formatDate(change.previousDate)}${change.previousSupplier ? ` (${change.previousSupplier})` : ''}`
+                    : ' · último precio conocido'}
+                </p>
+              )}
               {showStock && (
                 <p className="tabular mt-0.5 flex items-center gap-2 text-xs text-muted">
                   Stock: {formatQty(before, unit)} <ArrowRight className="size-3" />

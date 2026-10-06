@@ -235,7 +235,13 @@ function StockPage() {
             return (
               <div key={i.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-5 py-3 transition-colors hover:bg-subtle/50 sm:grid-cols-[1.4fr_1fr_8rem_2.5rem]">
                 <div className="min-w-0">
-                  <p className="truncate font-medium">{i.name}</p>
+                  <Link
+                    to="/ingredientes/$ingredientId"
+                    params={{ ingredientId: i.id }}
+                    className="block truncate font-medium hover:text-brand hover:underline"
+                  >
+                    {i.name}
+                  </Link>
                   <p className="text-xs text-muted">{i.category}</p>
                 </div>
                 <div className="order-last col-span-2 sm:order-0 sm:col-span-1">

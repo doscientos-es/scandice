@@ -75,7 +75,22 @@ function NoteDetail() {
         }
       />
       <div className="max-w-xl print:max-w-none">
-        <NotePreview draft={note} ingredients={state.ingredients} showStock={false} />
+        <NotePreview
+          draft={note}
+          ingredients={state.ingredients}
+          showStock={false}
+          compare={{ notes: state.notes, noteId: note.id }}
+        />
+        {note.photo && (
+          <figure className="mt-6 print:hidden">
+            <figcaption className="mb-2 text-sm font-semibold">Foto del albarán</figcaption>
+            <img
+              src={note.photo}
+              alt={`Foto del albarán ${note.number || note.supplier}`}
+              className="max-h-96 rounded-lg border border-line bg-surface"
+            />
+          </figure>
+        )}
       </div>
     </>
   )

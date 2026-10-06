@@ -28,6 +28,7 @@ export const roleById = (id: Role | null) => ROLES.find((r) => r.id === id)
 export function sectionOfPath(pathname: string): Section | null {
   const first = pathname.split('/').filter(Boolean)[0]
   if (!first) return 'inicio'
+  if (first === 'ingredientes') return 'stock'
   return (['albaranes', 'stock', 'recetas', 'ventas'] as const).find((s) => s === first) ?? null
 }
 
