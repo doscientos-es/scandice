@@ -1,0 +1,71 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-canvas: #f6f4ef;
+  --color-surface: #ffffff;
+  --color-subtle: #f1eee7;
+  --color-line: #e6e1d6;
+  --color-ink: #1c1917;
+  --color-muted: #78716c;
+  --color-brand: #c2410c;
+  --color-brand-strong: #9a3412;
+  --color-brand-soft: #fff1e8;
+  --color-ok: #15803d;
+  --color-ok-soft: #e7f5ec;
+  --color-warn: #b45309;
+  --color-warn-soft: #fef3c7;
+  --color-bad: #b91c1c;
+  --color-bad-soft: #fee2e2;
+  --radius-card: 1rem;
+  --shadow-card: 0 1px 2px rgb(28 25 23 / 0.04), 0 4px 16px rgb(28 25 23 / 0.04);
+}
+
+@layer base {
+  html {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    min-height: 100dvh;
+    font-size: 15px;
+  }
+  button,
+  a,
+  input,
+  select,
+  label {
+    touch-action: manipulation;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+  input,
+  select {
+    font-size: 16px;
+  }
+  @media (min-width: 1024px) {
+    input,
+    select {
+      font-size: 14px;
+    }
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
