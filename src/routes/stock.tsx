@@ -10,6 +10,7 @@ import { actions, useAppState } from '@/shared/store/store'
 import { NumberInput, Field, Input } from '@/shared/ui/form'
 import { Modal } from '@/shared/ui/modal'
 import { Badge, Button, Card, EmptyState, PageHeader, StockBar, Tabs, cn } from '@/shared/ui/primitives'
+import { toast } from '@/shared/ui/toast'
 
 interface StockSearch {
   q?: string

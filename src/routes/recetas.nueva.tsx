@@ -5,6 +5,7 @@ import { RecipeWizard, emptyRecipe } from '@/features/recetas/recipe-wizard'
 import type { RecipeStep } from '@/features/recetas/recipe-wizard'
 import { actions, useAppState } from '@/shared/store/store'
 import { PageHeader } from '@/shared/ui/primitives'
+import { toast } from '@/shared/ui/toast'
 
 interface NewRecipeSearch {
   tipo?: 'final' | 'intermedia'

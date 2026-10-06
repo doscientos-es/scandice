@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { AlertTriangle, CheckCircle2, ShoppingBag } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { needsForSales, shortagesOf } from '@/shared/domain/recipes'
@@ -8,7 +8,7 @@ import type { Ingredient, SaleLine } from '@/shared/domain/types'
 import { formatMoney, formatQty } from '@/shared/domain/units'
 import { actions, useAppState } from '@/shared/store/store'
 import { QtyStepper } from '@/shared/ui/form'
-import { Badge, Button, Card, EmptyState, Notice, PageHeader, cn } from '@/shared/ui/primitives'
+import { Badge, Button, Card, EmptyState, Notice, PageHeader, buttonStyles, cn } from '@/shared/ui/primitives'
 import { SplitLayout } from '@/shared/ui/stepper'
 
 export const Route = createFileRoute('/ventas')({ component: SalesPage })
@@ -72,7 +72,17 @@ function SalesPage() {
       <SplitLayout
         form={
           finals.length === 0 ? (
-            <EmptyState title="Aún no hay recetas finales">Crea una receta para poder venderla.</EmptyState>
+            <EmptyState
+              title="Aún no hay recetas finales"
+              icon={<ShoppingBag className="size-5" />}
+              action={
+                <Link to="/recetas/nueva" className={buttonStyles('primary')}>
+                  Crear receta
+                </Link>
+              }
+            >
+              Crea una receta para poder venderla.
+            </EmptyState>
           ) : (
             <Card className="divide-y divide-line overflow-hidden">
               {finals.map((r) => {

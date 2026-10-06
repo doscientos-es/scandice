@@ -3,6 +3,7 @@ import { Outlet, createRootRoute, redirect, useLocation } from '@tanstack/react-
 import { canAccess, sectionOfPath } from '@/shared/domain/roles'
 import { AppShell } from '@/shared/layout/app-shell'
 import { getState } from '@/shared/store/store'
+import { Toaster } from '@/shared/ui/toast'
 
 export const Route = createRootRoute({
   beforeLoad: ({ location }) => {

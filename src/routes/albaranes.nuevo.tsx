@@ -6,6 +6,7 @@ import type { NoteStep } from '@/features/albaranes/note-wizard'
 import type { NoteDraft } from '@/shared/domain/types'
 import { actions, useAppState } from '@/shared/store/store'
 import { PageHeader } from '@/shared/ui/primitives'
+import { toast } from '@/shared/ui/toast'
 
 interface NewNoteSearch {
   paso?: NoteStep

@@ -21,7 +21,17 @@ function NotesPage() {
         }
       />
       {notes.length === 0 ? (
-        <EmptyState title="Aún no hay albaranes">Escanea el primero para sumar stock automáticamente.</EmptyState>
+        <EmptyState
+          title="Aún no hay albaranes"
+          icon={<ReceiptText className="size-5" />}
+          action={
+            <Link to="/albaranes/nuevo" className={buttonStyles('primary')}>
+              <ScanLine className="size-4" /> Escanear albarán
+            </Link>
+          }
+        >
+          Escanea el primero para sumar stock automáticamente.
+        </EmptyState>
       ) : (
         <Card className="divide-y divide-line overflow-hidden">
           {notes.map((n) => (

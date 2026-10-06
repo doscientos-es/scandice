@@ -1,5 +1,5 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Plus } from 'lucide-react'
+import { ChefHat, Plus } from 'lucide-react'
 
 import { maxPortions, recipeCost } from '@/shared/domain/recipes'
 import { formatMoney, formatQty, unitMeta } from '@/shared/domain/units'
@@ -50,15 +50,25 @@ function RecipesPage() {
             void navigate({ search: { tipo: id === 'todas' ? undefined : id }, replace: true })
           }
           options={[
-            { id: 'todas', label: 'Todas' },
-            { id: 'final', label: 'Finales' },
-            { id: 'intermedia', label: 'Intermedias' },
+            { id: 'todas', label: 'Todas', count: state.recipes.length },
+            { id: 'final', label: 'Finales', count: state.recipes.filter((r) => r.kind === 'final').length },
+            { id: 'intermedia', label: 'Intermedias', count: state.recipes.filter((r) => r.kind !== 'final').length },
           ]}
         />
       </div>
 
       {list.length === 0 ? (
-        <EmptyState title="No hay recetas de este tipo" />
+        <EmptyState
+          title="No hay recetas de este tipo"
+          icon={<ChefHat className="size-5" />}
+          action={
+            <Link to="/recetas/nueva" className={buttonStyles('primary')}>
+              <Plus className="size-4" /> Nueva receta
+            </Link>
+          }
+        >
+          Crea la primera para calcular costes y raciones.
+        </EmptyState>
       ) : (
         <Card className="divide-y divide-line overflow-hidden">
           {list.map((r) => {
