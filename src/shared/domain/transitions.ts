@@ -1,3 +1,4 @@
+import { priceHistory } from './prices'
 import { needsForSales } from './recipes'
 import { packTotal } from './stock'
 import type {
@@ -27,6 +28,14 @@ const movement = (
   label,
 })
 
+/** El coste de cada ingrediente es el último precio cobrado (por fecha de albarán). */
+function withLatestCosts(ingredients: Ingredient[], notes: DeliveryNote[]): Ingredient[] {
+  return ingredients.map((i) => {
+    const last = priceHistory(notes, i.id).at(-1)
+    return last && last.price !== i.costPerUnit ? { ...i, costPerUnit: last.price } : i
+  })
+}
+
 /** Confirma un albarán: crea ingredientes nuevos y suma al stock (en unidad mínima). */
 export function confirmNote(state: AppState, draft: NoteDraft): { state: AppState; note: DeliveryNote } {
   const ingredients = state.ingredients.map((i) => ({ ...i }))
@@ -51,7 +60,6 @@ export function confirmNote(state: AppState, draft: NoteDraft): { state: AppStat
     const total = packTotal(line)
     if (target) {
       target.stock = round(target.stock + total)
-      if (line.lineTotal > 0 && total > 0) target.costPerUnit = line.lineTotal / total
       movements.push(movement(target.id, total, 'albaran', label))
     }
     return { ...line, ingredientId: id, newIngredient: null }
@@ -63,12 +71,13 @@ export function confirmNote(state: AppState, draft: NoteDraft): { state: AppStat
     id: newId(),
     createdAt: new Date().toISOString(),
   }
+  const notes = [note, ...state.notes]
   return {
     note,
     state: {
       ...state,
-      ingredients,
-      notes: [note, ...state.notes],
+      ingredients: withLatestCosts(ingredients, notes),
+      notes,
       movements: [...movements, ...state.movements],
     },
   }
@@ -96,10 +105,11 @@ export function updateNote(state: AppState, updated: DeliveryNote): AppState {
     movements.push(movement(i.id, d, 'ajuste', label))
     return { ...i, stock: Math.max(0, round(i.stock + d)) }
   })
+  const notes = state.notes.map((n) => (n.id === updated.id ? updated : n))
   return {
     ...state,
-    ingredients,
-    notes: state.notes.map((n) => (n.id === updated.id ? updated : n)),
+    ingredients: withLatestCosts(ingredients, notes),
+    notes,
     movements: [...movements, ...state.movements],
   }
 }
@@ -120,10 +130,11 @@ export function deleteNote(state: AppState, id: string): AppState {
     movements.push(movement(i.id, -d, 'ajuste', label))
     return { ...i, stock: Math.max(0, round(i.stock - d)) }
   })
+  const notes = state.notes.filter((n) => n.id !== id)
   return {
     ...state,
-    ingredients,
-    notes: state.notes.filter((n) => n.id !== id),
+    ingredients: withLatestCosts(ingredients, notes),
+    notes,
     movements: [...movements, ...state.movements],
   }
 }

@@ -1,4 +1,4 @@
-import { Sparkles, Trash2, Upload } from 'lucide-react'
+import { Camera, Sparkles, Trash2, Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
 
 import { packTotal, validateDraft } from '@/shared/domain/stock'
@@ -10,6 +10,7 @@ import { Badge, Button, Card, Notice, cn } from '@/shared/ui/primitives'
 import { SplitLayout, Stepper } from '@/shared/ui/stepper'
 import type { Step } from '@/shared/ui/stepper'
 
+import { CameraCapture } from './camera-capture'
 import { NotePreview } from './note-preview'
 import { simulateScan } from './mock-scan'
 
@@ -52,7 +53,9 @@ interface Props {
 export function NoteWizard({ draft, setDraft, step, ingredients, onStep, onConfirm }: Props) {
   const notes = useAppState().notes
   const [scanning, setScanning] = useState(false)
+  const [cameraOpen, setCameraOpen] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
   const index = STEPS.findIndex((s) => s.id === step)
   const issues = draft ? validateDraft(draft) : []
 
@@ -95,6 +98,17 @@ export function NoteWizard({ draft, setDraft, step, ingredients, onStep, onConfi
                   <span className="font-medium">{scanning ? 'La IA está leyendo el albarán…' : 'Toca para elegir una foto o PDF'}</span>
                 </button>
                 <input ref={fileRef} type="file" accept="image/*,application/pdf" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void scan(f.name, f); e.target.value = '' }} />
+                <Button className="w-full" disabled={scanning} onClick={() => setCameraOpen(true)}>
+                  <Camera className="size-4" /> Abrir la cámara
+                </Button>
+                <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void scan(f.name, f); e.target.value = '' }} />
+                {cameraOpen && (
+                  <CameraCapture
+                    onClose={() => setCameraOpen(false)}
+                    onUnavailable={() => { setCameraOpen(false); cameraRef.current?.click() }}
+                    onCapture={(f) => { setCameraOpen(false); void scan(f.name, f) }}
+                  />
+                )}
                 <Button variant="secondary" className="w-full" disabled={scanning} onClick={() => void scan('albaran-ejemplo.jpg')}>
                   <Sparkles className="size-4" /> Usar un albarán de ejemplo
                 </Button>
