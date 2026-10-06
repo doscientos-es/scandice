@@ -3,10 +3,10 @@ import { Pencil, ScanLine, Search } from 'lucide-react'
 import { useState } from 'react'
 
 import { downloadCsv, todayStamp } from '@/shared/domain/csv'
-import { stockLevel } from '@/shared/domain/stock'
+import { shoppingList, stockLevel } from '@/shared/domain/stock'
 import type { StockLevel } from '@/shared/domain/stock'
 import type { Ingredient } from '@/shared/domain/types'
-import { formatDateTime, formatQty, unitMeta } from '@/shared/domain/units'
+import { formatDateTime, formatMoney, formatQty, unitMeta } from '@/shared/domain/units'
 import { actions, getState, useAppState } from '@/shared/store/store'
 import { NumberInput, Field, Input, Select } from '@/shared/ui/form'
 import { ExportActions } from '@/shared/ui/export-actions'
@@ -17,7 +17,7 @@ import { toast } from '@/shared/ui/toast'
 interface StockSearch {
   q?: string
   estado?: 'todos' | 'bajo'
-  vista?: 'ingredientes' | 'movimientos'
+  vista?: 'ingredientes' | 'movimientos' | 'compra'
   orden?: 'estado' | 'stock'
 }
 
@@ -25,7 +25,7 @@ export const Route = createFileRoute('/stock')({
   validateSearch: (s: StockSearch): StockSearch => ({
     q: s.q ? String(s.q) : undefined,
     estado: s.estado === 'bajo' ? 'bajo' : undefined,
-    vista: s.vista === 'movimientos' ? 'movimientos' : undefined,
+    vista: s.vista === 'movimientos' || s.vista === 'compra' ? s.vista : undefined,
     orden: s.orden === 'estado' || s.orden === 'stock' ? s.orden : undefined,
   }),
   component: StockPage,
@@ -63,15 +63,33 @@ function StockPage() {
   const set = (patch: Partial<StockSearch>) =>
     void navigate({ search: (prev) => ({ ...prev, ...patch }), replace: true })
 
-  const tabValue = vista === 'movimientos' ? 'movimientos' : onlyLow ? 'bajo' : 'todos'
-  const onTab = (id: 'todos' | 'bajo' | 'movimientos') =>
+  const shopping = shoppingList(state.ingredients)
+  const shoppingTotal = shopping.reduce((sum, s) => sum + s.cost, 0)
+
+  const tabValue = vista === 'movimientos' || vista === 'compra' ? vista : onlyLow ? 'bajo' : 'todos'
+  const onTab = (id: 'todos' | 'bajo' | 'movimientos' | 'compra') =>
     set(
-      id === 'movimientos'
-        ? { vista: 'movimientos' }
+      id === 'movimientos' || id === 'compra'
+        ? { vista: id }
         : { vista: undefined, estado: id === 'bajo' ? 'bajo' : undefined },
     )
 
   const exportCsv = () => {
+    if (vista === 'compra') {
+      downloadCsv(`lista-compra-${todayStamp()}`, [
+        ['Ingrediente', 'Unidad', 'Stock', 'Mínimo', 'A pedir', 'Coste estimado'],
+        ...shopping.map((s) => [
+          s.ingredient.name,
+          s.ingredient.unit,
+          s.ingredient.stock,
+          s.ingredient.minStock,
+          s.toOrder,
+          Math.round(s.cost * 100) / 100,
+        ]),
+      ])
+      toast('Lista de la compra exportada', { description: `${shopping.length} ingredientes en CSV.` })
+      return
+    }
     if (vista === 'movimientos') {
       downloadCsv(`movimientos-${todayStamp()}`, [
         ['Fecha', 'Ingrediente', 'Motivo', 'Cantidad', 'Unidad'],
@@ -104,6 +122,7 @@ function StockPage() {
           options={[
             { id: 'todos', label: 'Todos', count: state.ingredients.length },
             { id: 'bajo', label: 'Stock bajo', count: state.ingredients.filter((i) => stockLevel(i) !== 'ok').length },
+            { id: 'compra', label: 'Lista de la compra', count: shopping.length },
             { id: 'movimientos', label: 'Movimientos' },
           ]}
         />
@@ -134,7 +153,34 @@ function StockPage() {
         )}
       </div>
 
-      {vista === 'movimientos' ? (
+      {vista === 'compra' ? (
+        shopping.length === 0 ? (
+          <EmptyState title="No hace falta pedir nada" icon={<Search className="size-5" />}>
+            Todos los ingredientes están por encima del mínimo.
+          </EmptyState>
+        ) : (
+          <Card className="divide-y divide-line overflow-hidden">
+            {shopping.map((s) => (
+              <div key={s.ingredient.id} className="flex items-center gap-3 px-5 py-3 text-sm">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{s.ingredient.name}</p>
+                  <p className="text-xs text-muted">
+                    Quedan {formatQty(s.ingredient.stock, s.ingredient.unit)} · mín. {formatQty(s.ingredient.minStock, s.ingredient.unit)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="tabular font-semibold">Pedir {formatQty(s.toOrder, s.ingredient.unit)}</p>
+                  <p className="tabular text-xs text-muted">≈ {formatMoney(s.cost)}</p>
+                </div>
+              </div>
+            ))}
+            <div className="flex justify-between bg-subtle/60 px-5 py-3 text-sm font-medium">
+              <span>Total estimado</span>
+              <span className="tabular">{formatMoney(shoppingTotal)}</span>
+            </div>
+          </Card>
+        )
+      ) : vista === 'movimientos' ? (
         <Card className="divide-y divide-line">
           {state.movements.length === 0 && (
             <EmptyState

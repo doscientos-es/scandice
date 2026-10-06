@@ -53,6 +53,7 @@ export const actions = {
     return result.note
   },
   updateNote: (note: DeliveryNote) => commit(t.updateNote(state, note)),
+  deleteNote: (id: string) => commit(t.deleteNote(state, id)),
   registerSales: (lines: SaleLine[]) => commit(t.registerSales(state, lines)),
   adjustIngredient: (id: string, patch: { stock: number; minStock: number }) =>
     commit(t.adjustIngredient(state, id, patch)),

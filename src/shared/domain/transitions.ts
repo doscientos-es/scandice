@@ -104,6 +104,30 @@ export function updateNote(state: AppState, updated: DeliveryNote): AppState {
   }
 }
 
+/** Borra un albarán y resta del stock lo que sumó (sin bajar de 0). */
+export function deleteNote(state: AppState, id: string): AppState {
+  const note = state.notes.find((n) => n.id === id)
+  if (!note) return state
+  const label = `Albarán eliminado ${note.number || note.supplier}`
+  const removed = new Map<string, number>()
+  for (const l of note.lines) {
+    if (l.ingredientId) removed.set(l.ingredientId, (removed.get(l.ingredientId) ?? 0) + packTotal(l))
+  }
+  const movements: StockMovement[] = []
+  const ingredients = state.ingredients.map((i) => {
+    const d = removed.get(i.id)
+    if (!d) return i
+    movements.push(movement(i.id, -d, 'ajuste', label))
+    return { ...i, stock: Math.max(0, round(i.stock - d)) }
+  })
+  return {
+    ...state,
+    ingredients,
+    notes: state.notes.filter((n) => n.id !== id),
+    movements: [...movements, ...state.movements],
+  }
+}
+
 /** Registra ventas y descuenta del stock los ingredientes base gastados. */
 export function registerSales(state: AppState, lines: SaleLine[]): AppState {
   const needs = needsForSales(lines, state.recipes)

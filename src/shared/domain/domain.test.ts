@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { toCsv } from './csv'
 import { flattenRecipe, maxPortions, needsForSales, shortagesOf } from './recipes'
 import { createSeedState } from './seed'
-import { packTotal, stockLevel, validateDraft } from './stock'
-import { confirmNote, registerSales, updateNote } from './transitions'
+import { packTotal, shoppingList, stockLevel, validateDraft } from './stock'
+import { confirmNote, deleteNote, registerSales, updateNote } from './transitions'
 import type { NoteDraft, NoteLine } from './types'
 
 const line = (over: Partial<NoteLine>): NoteLine => ({
@@ -46,6 +46,29 @@ describe('editar albarán', () => {
     const edited = updateNote(state, { ...note, lines: [{ ...note.lines[0], packs: 1 }] }) // +3 en total
     expect(edited.ingredients.find((i) => i.id === 'cola')!.stock).toBe(before + 3)
     expect(edited.notes[0].lines[0].packs).toBe(1)
+  })
+})
+
+describe('borrar albarán', () => {
+  it('resta del stock lo que sumó y quita el albarán', () => {
+    const base = createSeedState()
+    const before = base.ingredients.find((i) => i.id === 'cola')!.stock
+    const { state, note } = confirmNote(base, draft([line({ packs: 3 })]))
+    const after = deleteNote(state, note.id)
+    expect(after.ingredients.find((i) => i.id === 'cola')!.stock).toBe(before)
+    expect(after.notes.find((n) => n.id === note.id)).toBeUndefined()
+  })
+})
+
+describe('lista de la compra', () => {
+  it('solo incluye ingredientes bajo mínimo y pide hasta el doble del mínimo', () => {
+    const [a, b] = createSeedState().ingredients
+    const items = shoppingList([
+      { ...a, stock: 2, minStock: 10 },
+      { ...b, stock: 50, minStock: 10 },
+    ])
+    expect(items).toHaveLength(1)
+    expect(items[0].toOrder).toBe(18)
   })
 })
 

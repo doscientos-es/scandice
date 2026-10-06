@@ -20,6 +20,9 @@ export const Route = createFileRoute('/recetas/')({
   component: RecipesPage,
 })
 
+/** Margen bruto sobre el precio de venta (0–1). */
+const margin = (price: number, cost: number) => (price - cost) / price
+
 function RecipesPage() {
   const { tipo } = Route.useSearch()
   const navigate = useNavigate({ from: '/recetas/' })
@@ -114,6 +117,11 @@ function RecipesPage() {
                     <>
                       <span className="tabular font-medium text-ink">{formatMoney(r.price)}</span>
                       <span className="tabular text-xs"> · coste {formatMoney(cost)}</span>
+                      {r.price > 0 && (
+                        <Badge tone={margin(r.price, cost) >= 0.6 ? 'ok' : margin(r.price, cost) >= 0.3 ? 'warn' : 'bad'}>
+                          {Math.round(margin(r.price, cost) * 100)} %
+                        </Badge>
+                      )}
                     </>
                   ) : (
                     <span className="tabular text-xs">

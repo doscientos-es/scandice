@@ -15,6 +15,25 @@ export function stockLevel(i: Pick<Ingredient, 'stock' | 'minStock'>): StockLeve
 
 export const isLowOrOut = (i: Pick<Ingredient, 'stock' | 'minStock'>) => stockLevel(i) !== 'ok'
 
+export interface ShoppingItem {
+  ingredient: Ingredient
+  /** Cantidad sugerida a pedir, en unidad mínima: lo necesario para llegar al doble del mínimo. */
+  toOrder: number
+  /** Coste estimado con el último precio conocido. */
+  cost: number
+}
+
+/** Ingredientes en stock bajo o agotado con la cantidad sugerida a pedir (más urgentes primero). */
+export function shoppingList(ingredients: Ingredient[]): ShoppingItem[] {
+  return ingredients
+    .filter((i) => isLowOrOut(i) && i.minStock > 0)
+    .map((ingredient) => {
+      const toOrder = round(Math.max(ingredient.minStock * 2 - ingredient.stock, 0))
+      return { ingredient, toOrder, cost: toOrder * ingredient.costPerUnit }
+    })
+    .sort((a, b) => a.ingredient.stock / a.ingredient.minStock - b.ingredient.stock / b.ingredient.minStock)
+}
+
 export interface StockImpact {
   /** Ingredientes que estaban en stock bajo/agotado y vuelven a estar correctos. */
   recovered: number
