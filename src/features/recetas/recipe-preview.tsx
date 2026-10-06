@@ -26,9 +26,9 @@ export function RecipePreview({
 
   return (
     <Card className="overflow-hidden">
-      <div className="border-b border-line bg-subtle px-5 py-4">
+      <div className="border-b border-line px-5 py-4">
         <div className="flex items-start justify-between gap-3">
-          <h2 className={cn('text-xl font-semibold', !recipe.name && 'text-muted')}>
+          <h2 className={cn('text-base font-semibold', !recipe.name && 'text-muted')}>
             {recipe.name || 'Nueva receta'}
           </h2>
           <Badge tone={final ? 'brand' : 'neutral'}>{final ? 'Plato final' : 'Intermedia'}</Badge>

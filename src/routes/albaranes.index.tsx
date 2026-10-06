@@ -23,7 +23,7 @@ function NotesPage() {
       {notes.length === 0 ? (
         <EmptyState title="Aún no hay albaranes">Escanea el primero para sumar stock automáticamente.</EmptyState>
       ) : (
-        <Card className="divide-y divide-line">
+        <Card className="divide-y divide-line overflow-hidden">
           {notes.map((n) => (
             <Link
               key={n.id}

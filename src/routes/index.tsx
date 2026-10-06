@@ -33,22 +33,18 @@ function Dashboard() {
 
   return (
     <>
-      <PageHeader title={`Hola, ${role?.label.toLowerCase()}`} description="Resumen de cómo está la cocina ahora mismo." />
-
-      <div className="mb-8 grid gap-3 sm:grid-cols-3">
-        {actions
+      <PageHeader
+        title={`Hola, ${role?.label.toLowerCase()}`}
+        description="Resumen de cómo está la cocina ahora mismo."
+        actions={actions
           .filter((a) => canAccess(state.role, a.section))
           .map(({ to, label, icon: Icon, ...a }) => (
-            <Link
-              key={to}
-              to={to}
-              className={buttonStyles('primary' in a ? 'primary' : 'secondary', 'lg', 'justify-start gap-3')}
-            >
-              <Icon className="size-5" />
+            <Link key={to} to={to} className={buttonStyles('primary' in a ? 'primary' : 'secondary')}>
+              <Icon className="size-4" />
               {label}
             </Link>
           ))}
-      </div>
+      />
 
       <Card className="mb-10 grid grid-cols-2 divide-line max-lg:[&>*:nth-child(n+3)]:border-t max-lg:[&>*:nth-child(even)]:border-l lg:grid-cols-4 lg:divide-x">
         <Kpi label="Ingredientes" value={String(state.ingredients.length)} />

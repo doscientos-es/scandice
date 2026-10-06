@@ -26,7 +26,7 @@ function RolePage() {
     <main className="grid min-h-dvh place-items-center px-4 py-10">
       <div className="w-full max-w-3xl">
         <div className="mb-10 text-center">
-          <span className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-brand text-white">
+          <span className="mx-auto mb-4 grid size-12 place-items-center rounded-xl bg-ink text-white">
             <ScanLine className="size-7" />
           </span>
           <h1 className="text-4xl font-semibold tracking-tight">ScanDice</h1>
@@ -44,7 +44,7 @@ function RolePage() {
                 onClick={() => choose(role.id)}
                 className="text-left"
               >
-                <Card className="h-full p-6 transition-all hover:-translate-y-1 hover:border-brand hover:shadow-lg">
+                <Card className="h-full p-6 transition-all hover:border-brand/60 hover:shadow-md">
                   <Icon className="mb-4 size-7 text-brand" />
                   <h2 className="text-lg font-semibold">{role.label}</h2>
                   <p className="mt-1 text-sm text-muted">{role.description}</p>

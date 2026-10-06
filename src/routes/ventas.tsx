@@ -74,14 +74,18 @@ function SalesPage() {
           finals.length === 0 ? (
             <EmptyState title="Aún no hay recetas finales">Crea una receta para poder venderla.</EmptyState>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <Card className="divide-y divide-line overflow-hidden">
               {finals.map((r) => {
                 const qty = cart[r.id] ?? 0
                 return (
-                  <Card key={r.id} className={cn('p-4 transition-colors', qty > 0 && 'border-brand bg-brand-soft/40')}>
-                    <div className="mb-3 flex items-start justify-between gap-2">
-                      <p className="font-semibold">{r.name}</p>
-                      <span className="tabular text-sm text-muted">{formatMoney(r.price)}</span>
+                  <div
+                    key={r.id}
+                    className={cn('flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition-colors', qty > 0 && 'bg-brand-soft/40')}
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{r.name}</p>
+                      <p className="tabular text-xs text-muted">{formatMoney(r.price)}</p>
+                      {!canAdd(r.id) && <p className="mt-1 text-xs text-bad">No queda stock para más.</p>}
                     </div>
                     <QtyStepper
                       label={r.name}
@@ -92,16 +96,15 @@ function SalesPage() {
                         setCart({ ...cart, [r.id]: n })
                       }}
                     />
-                    {!canAdd(r.id) && <p className="mt-2 text-xs text-bad">No queda stock para más.</p>}
-                  </Card>
+                  </div>
                 )
               })}
-            </div>
+            </Card>
           )
         }
         preview={
           <Card className="p-5">
-            <h2 className="mb-4 font-semibold">Resumen de la venta</h2>
+            <h2 className="mb-4 text-base font-semibold">Resumen de la venta</h2>
             {lines.length === 0 ? (
               <p className="text-sm text-muted">Añade platos para ver qué ingredientes se gastarán.</p>
             ) : (

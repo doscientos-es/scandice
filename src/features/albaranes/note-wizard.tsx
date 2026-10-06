@@ -51,9 +51,9 @@ export function NoteWizard({ draft, setDraft, step, ingredients, onStep, onConfi
   const assign = (l: NoteLine, value: string) =>
     value === NEW
       ? patchLine(l.id, {
-          ingredientId: null,
-          newIngredient: l.newIngredient ?? { name: l.description.toLowerCase(), unit: 'ud', category: 'Otros' },
-        })
+        ingredientId: null,
+        newIngredient: l.newIngredient ?? { name: l.description.toLowerCase(), unit: 'ud', category: 'Otros' },
+      })
       : patchLine(l.id, { ingredientId: value || null, newIngredient: null })
 
   return (
@@ -62,10 +62,10 @@ export function NoteWizard({ draft, setDraft, step, ingredients, onStep, onConfi
       <SplitLayout
         preview={<NotePreview draft={draft} ingredients={ingredients} />}
         form={
-          <Card className="p-6">
+          <Card className="p-5">
             {step === 'subir' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Sube la foto del albarán</h2>
+                <h2 className="text-base font-semibold">Sube la foto del albarán</h2>
                 <button
                   type="button"
                   disabled={scanning}
@@ -85,13 +85,13 @@ export function NoteWizard({ draft, setDraft, step, ingredients, onStep, onConfi
 
             {step === 'lineas' && draft && (
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Revisa lo que ha leído la IA</h2>
+                <h2 className="text-base font-semibold">Revisa lo que ha leído la IA</h2>
                 <p className="text-sm text-muted">Packs × unidades por pack × contenido = lo que se suma al stock.</p>
                 {draft.lines.map((l) => {
                   const ing = ingredients.find((i) => i.id === l.ingredientId)
                   const unit = ing?.unit ?? l.newIngredient?.unit ?? 'ud'
                   return (
-                    <div key={l.id} className={cn('space-y-3 rounded-xl border p-4', l.confidence < 0.75 ? 'border-warn' : 'border-line')}>
+                    <div key={l.id} className={cn('space-y-3 rounded-lg border bg-surface p-4', l.confidence < 0.75 ? 'border-warn/60 bg-warn-soft/30' : 'border-line')}>
                       <div className="flex items-center justify-between gap-2">
                         <p className="truncate text-xs font-medium text-muted">{l.description}</p>
                         <div className="flex items-center gap-1">
@@ -128,7 +128,7 @@ export function NoteWizard({ draft, setDraft, step, ingredients, onStep, onConfi
 
             {step === 'confirmar' && draft && (
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Datos del albarán</h2>
+                <h2 className="text-base font-semibold">Datos del albarán</h2>
                 <Field label="Proveedor"><Input value={draft.supplier} onChange={(e) => setDraft({ ...draft, supplier: e.target.value })} /></Field>
                 <div className="grid grid-cols-2 gap-4">
                   <Field label="Nº de albarán"><Input value={draft.number} onChange={(e) => setDraft({ ...draft, number: e.target.value })} /></Field>

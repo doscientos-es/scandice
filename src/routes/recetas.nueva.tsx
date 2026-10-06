@@ -42,6 +42,7 @@ function NewRecipePage() {
         }
         onSave={(recipe) => {
           actions.saveRecipe(recipe)
+          toast('Receta creada', { description: recipe.name })
           void navigate({ to: '/recetas/$recetaId', params: { recetaId: recipe.id } })
         }}
       />

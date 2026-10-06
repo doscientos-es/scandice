@@ -86,10 +86,10 @@ export function PageHeader({
   actions?: ReactNode
 }) {
   return (
-    <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-        {description && <p className="mt-1 text-sm text-muted">{description}</p>}
+        <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+        {description && <p className="mt-0.5 text-sm text-muted">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </header>
@@ -103,7 +103,7 @@ export function Tabs<T extends string>({
   onChange,
 }: {
   value: T
-  options: { id: T; label: string }[]
+  options: { id: T; label: string; count?: number }[]
   onChange: (id: T) => void
 }) {
   return (
@@ -116,21 +116,40 @@ export function Tabs<T extends string>({
           aria-selected={o.id === value}
           onClick={() => onChange(o.id)}
           className={cn(
-            '-mb-px border-b-2 pb-2.5 text-sm font-medium transition-colors',
+            '-mb-px flex cursor-pointer items-center gap-2 border-b-2 pb-2.5 text-sm font-medium transition-colors',
             o.id === value ? 'border-ink text-ink' : 'border-transparent text-muted hover:text-ink',
           )}
         >
           {o.label}
+          {o.count !== undefined && (
+            <span className="tabular rounded-md bg-subtle px-1.5 text-xs font-medium text-muted">{o.count}</span>
+          )}
         </button>
       ))}
     </div>
   )
 }
 
-export const EmptyState = ({ title, children }: { title: string; children?: ReactNode }) => (
-  <div className="rounded-card border border-dashed border-line px-6 py-12 text-center">
-    <p className="font-medium">{title}</p>
-    {children && <div className="mt-2 text-sm text-muted">{children}</div>}
+export const EmptyState = ({
+  title,
+  icon,
+  action,
+  children,
+}: {
+  title: string
+  icon?: ReactNode
+  action?: ReactNode
+  children?: ReactNode
+}) => (
+  <div className="rounded-card border border-dashed border-line bg-surface px-6 py-14 text-center">
+    {icon && (
+      <span className="mx-auto mb-3 grid size-10 place-items-center rounded-lg border border-line bg-subtle text-muted">
+        {icon}
+      </span>
+    )}
+    <p className="text-sm font-medium">{title}</p>
+    {children && <div className="mt-1 text-sm text-muted">{children}</div>}
+    {action && <div className="mt-4 flex justify-center">{action}</div>}
   </div>
 )
 

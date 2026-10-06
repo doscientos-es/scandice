@@ -141,7 +141,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             className="flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-muted"
             activeProps={{ className: 'text-brand' }}
           >
-            <Icon className="size-5" />
+            <Icon className="size-4.5" />
             {label}
           </Link>
         ))}

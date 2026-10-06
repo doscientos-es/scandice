@@ -20,10 +20,16 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   const pathname = useLocation({ select: (l) => l.pathname })
-  if (pathname === '/rol') return <Outlet />
   return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
+    <>
+      {pathname === '/rol' ? (
+        <Outlet />
+      ) : (
+        <AppShell>
+          <Outlet />
+        </AppShell>
+      )}
+      <Toaster />
+    </>
   )
 }

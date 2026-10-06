@@ -40,6 +40,7 @@ function NewNotePage() {
         }
         onConfirm={(d) => {
           const note = actions.confirmNote(d)
+          toast('Albarán guardado', { description: `${note.lines.length} líneas sumadas al stock.` })
           void navigate({ to: '/albaranes/$albaranId', params: { albaranId: note.id } })
         }}
       />

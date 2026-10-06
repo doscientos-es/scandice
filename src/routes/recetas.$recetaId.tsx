@@ -44,10 +44,12 @@ function EditRecipePage() {
         onStep={(p) => void navigate({ search: { paso: p }, replace: true })}
         onSave={(r) => {
           actions.saveRecipe(r)
+          toast('Cambios guardados', { description: r.name })
           void navigate({ to: '/recetas' })
         }}
         onDelete={() => {
           actions.deleteRecipe(recipe.id)
+          toast('Receta eliminada', { description: recipe.name, tone: 'warn' })
           void navigate({ to: '/recetas' })
         }}
       />

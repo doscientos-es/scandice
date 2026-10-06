@@ -22,35 +22,48 @@ export function Stepper<T extends string>({
 }) {
   const currentIndex = steps.findIndex((s) => s.id === current)
   return (
-    <ol className="mb-6 flex items-center gap-2">
+    <ol className="mb-6 flex items-center gap-3 border-b border-line pb-4">
       {steps.map((step, index) => {
         const done = index < currentIndex
         const active = index === currentIndex
+        const reachable = index <= maxReached
+        const clickable = reachable && !active
         return (
           <li key={step.id} className="flex flex-1 items-center gap-2 last:flex-none">
             <button
               type="button"
-              disabled={index > maxReached}
+              disabled={!reachable}
               aria-current={active ? 'step' : undefined}
               onClick={() => onSelect(step.id)}
-              className="flex items-center gap-2 rounded-full disabled:cursor-not-allowed"
+              className={cn(
+                'group -mx-1.5 flex items-center gap-2 rounded-lg px-1.5 py-1 transition-colors',
+                clickable && 'cursor-pointer hover:bg-subtle',
+                active && 'cursor-default',
+                !reachable && 'cursor-not-allowed opacity-50',
+              )}
             >
               <span
                 className={cn(
-                  'grid size-8 place-items-center rounded-full text-sm font-semibold transition-colors',
-                  active && 'bg-ink text-white',
-                  done && 'bg-ok text-white',
-                  !active && !done && 'bg-subtle text-muted',
+                  'grid size-6 place-items-center rounded-full text-xs font-semibold transition-colors',
+                  active && 'bg-brand text-white',
+                  done && 'bg-ink text-white',
+                  !active && !done && 'border border-line bg-surface text-muted',
                 )}
               >
-                {done ? <Check className="size-4" /> : index + 1}
+                {done ? <Check className="size-3.5" /> : index + 1}
               </span>
-              <span className={cn('hidden text-sm font-medium sm:inline', !active && 'text-muted')}>
+              <span
+                className={cn(
+                  'hidden text-sm font-medium sm:inline',
+                  !active && 'text-muted',
+                  clickable && 'group-hover:text-ink group-hover:underline group-hover:underline-offset-4',
+                )}
+              >
                 {step.label}
               </span>
             </button>
             {index < steps.length - 1 && (
-              <span className={cn('h-px flex-1', done ? 'bg-ok' : 'bg-line')} aria-hidden />
+              <span className={cn('h-px flex-1', done ? 'bg-ink' : 'bg-line')} aria-hidden />
             )}
           </li>
         )

@@ -66,8 +66,8 @@ function StockPage() {
           value={tabValue}
           onChange={onTab}
           options={[
-            { id: 'todos', label: 'Todos' },
-            { id: 'bajo', label: 'Stock bajo' },
+            { id: 'todos', label: 'Todos', count: state.ingredients.length },
+            { id: 'bajo', label: 'Stock bajo', count: state.ingredients.filter((i) => stockLevel(i) !== 'ok').length },
             { id: 'movimientos', label: 'Movimientos' },
           ]}
         />
@@ -108,18 +108,26 @@ function StockPage() {
           })}
         </Card>
       ) : rows.length === 0 ? (
-        <EmptyState title="No hay ingredientes que coincidan" />
+        <EmptyState title="No hay ingredientes que coincidan" icon={<Search className="size-5" />}>
+          Prueba con otro nombre o quita el filtro de stock bajo.
+        </EmptyState>
       ) : (
-        <Card className="divide-y divide-line">
+        <Card className="divide-y divide-line overflow-hidden">
+          <div className="hidden grid-cols-[1.4fr_1fr_8rem_2.5rem] gap-x-4 bg-subtle/60 px-5 py-2 text-xs font-medium text-muted sm:grid">
+            <span>Ingrediente</span>
+            <span>Stock</span>
+            <span>Estado</span>
+            <span className="sr-only">Acciones</span>
+          </div>
           {rows.map((i) => {
             const badge = levelBadge[stockLevel(i)]
             return (
-              <div key={i.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-5 py-3.5 sm:grid-cols-[1.4fr_1fr_auto_auto]">
+              <div key={i.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-5 py-3 transition-colors hover:bg-subtle/50 sm:grid-cols-[1.4fr_1fr_8rem_2.5rem]">
                 <div className="min-w-0">
                   <p className="truncate font-medium">{i.name}</p>
                   <p className="text-xs text-muted">{i.category}</p>
                 </div>
-                <div className="order-last col-span-2 sm:order-none sm:col-span-1">
+                <div className="order-last col-span-2 sm:order-0 sm:col-span-1">
                   <div className="tabular mb-1.5 flex justify-between text-sm">
                     <span className="font-semibold">{formatQty(i.stock, i.unit)}</span>
                     <span className="text-xs text-muted">mín. {formatQty(i.minStock, i.unit)}</span>

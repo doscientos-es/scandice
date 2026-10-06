@@ -92,10 +92,10 @@ export function RecipeWizard({ initial, isNew, step, recipes, ingredients, onSte
       <SplitLayout
         preview={<RecipePreview recipe={recipe} recipes={recipes} ingredients={ingredients} />}
         form={
-          <Card className="p-6">
+          <Card className="p-5">
             {step === 'datos' && (
               <div className="space-y-5">
-                <h2 className="text-lg font-semibold">¿Qué receta es?</h2>
+                <h2 className="text-base font-semibold">¿Qué receta es?</h2>
                 <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Tipo de receta">
                   {(['final', 'intermediate'] as const).map((kind) => (
                     <button
@@ -106,8 +106,8 @@ export function RecipeWizard({ initial, isNew, step, recipes, ingredients, onSte
                       disabled={!isNew}
                       onClick={() => setRecipe({ ...emptyRecipe(kind), id: recipe.id, name: recipe.name })}
                       className={cn(
-                        'rounded-xl border p-4 text-left transition-colors disabled:cursor-not-allowed',
-                        recipe.kind === kind ? 'border-brand bg-brand-soft' : 'border-line hover:bg-subtle',
+                        'rounded-lg border p-4 text-left transition-colors disabled:cursor-not-allowed',
+                        recipe.kind === kind ? 'border-brand bg-brand-soft ring-1 ring-brand' : 'border-line hover:bg-subtle',
                       )}
                     >
                       <p className="font-medium">{kind === 'final' ? 'Plato final' : 'Receta intermedia'}</p>
@@ -143,7 +143,7 @@ export function RecipeWizard({ initial, isNew, step, recipes, ingredients, onSte
 
             {step === 'ingredientes' && (
               <div className="space-y-5">
-                <h2 className="text-lg font-semibold">Ingredientes y cantidades</h2>
+                <h2 className="text-base font-semibold">Ingredientes y cantidades</h2>
                 {recipe.items.length > 0 && (
                   <ul className="space-y-2">
                     {recipe.items.map((item, i) => (
@@ -162,7 +162,7 @@ export function RecipeWizard({ initial, isNew, step, recipes, ingredients, onSte
                     ))}
                   </ul>
                 )}
-                <div className="rounded-xl border border-line">
+                <div className="overflow-hidden rounded-lg border border-line">
                   <div className="relative border-b border-line">
                     <Search className="pointer-events-none absolute top-3 left-3 size-4 text-muted" />
                     <Input className="rounded-b-none border-0 pl-9 focus:ring-0" placeholder="Buscar ingrediente o receta intermedia…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar ingrediente" />
@@ -185,7 +185,7 @@ export function RecipeWizard({ initial, isNew, step, recipes, ingredients, onSte
 
             {step === 'revisar' && (
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Todo listo</h2>
+                <h2 className="text-base font-semibold">Todo listo</h2>
                 <p className="text-sm text-muted">
                   Comprueba la vista previa. Al vender esta receta se descontarán del stock los ingredientes base indicados.
                 </p>
