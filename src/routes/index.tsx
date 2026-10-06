@@ -50,17 +50,17 @@ function Dashboard() {
           ))}
       </div>
 
-      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <Card className="mb-10 grid grid-cols-2 divide-line max-lg:[&>*:nth-child(n+3)]:border-t max-lg:[&>*:nth-child(even)]:border-l lg:grid-cols-4 lg:divide-x">
         <Kpi label="Ingredientes" value={String(state.ingredients.length)} />
         <Kpi label="Con stock bajo" value={String(low.length)} tone={low.length ? 'warn' : undefined} />
         <Kpi label="Platos disponibles" value={`${finals.filter((f) => f.portions > 0).length}/${finals.length}`} />
         <Kpi label="Valor del stock" value={formatMoney(stockValue)} />
-      </div>
+      </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold">Avisos de stock</h2>
+      <div className="grid gap-x-12 gap-y-10 lg:grid-cols-2">
+        <section>
+          <div className="mb-3 flex items-center justify-between border-b border-line pb-3">
+            <h2 className="text-sm font-semibold">Avisos de stock</h2>
             <Link to="/stock" search={{ estado: 'bajo' }} className="text-sm text-brand hover:underline">
               Ver todo
             </Link>
@@ -85,10 +85,10 @@ function Dashboard() {
               ))}
             </ul>
           )}
-        </Card>
+        </section>
 
-        <Card className="p-5">
-          <h2 className="mb-4 font-semibold">Qué puedes cocinar ahora</h2>
+        <section>
+          <h2 className="mb-3 border-b border-line pb-3 text-sm font-semibold">Qué puedes cocinar ahora</h2>
           <ul className="divide-y divide-line">
             {finals.map(({ recipe, portions, limiting }) => (
               <li key={recipe.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
@@ -104,12 +104,12 @@ function Dashboard() {
               </li>
             ))}
           </ul>
-        </Card>
+        </section>
 
         {canAccess(state.role, 'albaranes') && (
-          <Card className="p-5 lg:col-span-2">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-semibold">Últimos albaranes</h2>
+          <section className="lg:col-span-2">
+            <div className="mb-1 flex items-center justify-between border-b border-line pb-3">
+              <h2 className="text-sm font-semibold">Últimos albaranes</h2>
               <Link to="/albaranes" className="text-sm text-brand hover:underline">
                 Ver todos
               </Link>
@@ -134,7 +134,7 @@ function Dashboard() {
                 ))}
               </ul>
             )}
-          </Card>
+          </section>
         )}
       </div>
     </>
@@ -143,11 +143,11 @@ function Dashboard() {
 
 function Kpi({ label, value, tone }: { label: string; value: string; tone?: 'warn' }) {
   return (
-    <Card className="p-4">
-      <p className="text-xs font-medium tracking-wide text-muted">{label}</p>
+    <div className="px-5 py-4">
+      <p className="text-xs font-medium text-muted">{label}</p>
       <p className={`tabular mt-1 text-2xl font-semibold tracking-tight ${tone === 'warn' ? 'text-warn' : ''}`}>
         {value}
       </p>
-    </Card>
+    </div>
   )
 }

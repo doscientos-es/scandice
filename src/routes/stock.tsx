@@ -9,7 +9,7 @@ import { formatDateTime, formatQty, unitMeta } from '@/shared/domain/units'
 import { actions, useAppState } from '@/shared/store/store'
 import { NumberInput, Field, Input } from '@/shared/ui/form'
 import { Modal } from '@/shared/ui/modal'
-import { Badge, Button, Card, EmptyState, PageHeader, StockBar, cn } from '@/shared/ui/primitives'
+import { Badge, Button, Card, EmptyState, PageHeader, StockBar, Tabs, cn } from '@/shared/ui/primitives'
 
 interface StockSearch {
   q?: string
@@ -49,28 +49,30 @@ function StockPage() {
   const set = (patch: Partial<StockSearch>) =>
     void navigate({ search: (prev) => ({ ...prev, ...patch }), replace: true })
 
-  const tab = (active: boolean) =>
-    cn(
-      'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
-      active ? 'bg-ink text-white' : 'bg-subtle text-muted hover:text-ink',
+  const tabValue = vista === 'movimientos' ? 'movimientos' : onlyLow ? 'bajo' : 'todos'
+  const onTab = (id: 'todos' | 'bajo' | 'movimientos') =>
+    set(
+      id === 'movimientos'
+        ? { vista: 'movimientos' }
+        : { vista: undefined, estado: id === 'bajo' ? 'bajo' : undefined },
     )
 
   return (
     <>
       <PageHeader title="Stock" description="Siempre en la unidad mínima: unidades, gramos o mililitros." />
 
-      <div className="mb-5 flex flex-wrap items-center gap-2">
-        <button type="button" className={tab(vista === 'ingredientes' && !onlyLow)} onClick={() => set({ vista: undefined, estado: undefined })}>
-          Todos
-        </button>
-        <button type="button" className={tab(vista === 'ingredientes' && onlyLow)} onClick={() => set({ vista: undefined, estado: 'bajo' })}>
-          Stock bajo
-        </button>
-        <button type="button" className={tab(vista === 'movimientos')} onClick={() => set({ vista: 'movimientos' })}>
-          Movimientos
-        </button>
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <Tabs
+          value={tabValue}
+          onChange={onTab}
+          options={[
+            { id: 'todos', label: 'Todos' },
+            { id: 'bajo', label: 'Stock bajo' },
+            { id: 'movimientos', label: 'Movimientos' },
+          ]}
+        />
         {vista === 'ingredientes' && (
-          <div className="relative ml-auto w-full sm:w-64">
+          <div className="relative w-full sm:w-64">
             <Search className="pointer-events-none absolute top-3 left-3 size-4 text-muted" />
             <Input
               className="pl-9"

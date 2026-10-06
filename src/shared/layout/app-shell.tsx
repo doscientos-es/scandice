@@ -34,7 +34,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const linkClass = (active: boolean) =>
     cn(
       'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
-      active ? 'bg-surface text-ink shadow-card' : 'text-muted hover:text-ink',
+      active
+        ? 'bg-surface text-brand-strong shadow-card ring-1 ring-line'
+        : 'text-muted hover:bg-surface/60 hover:text-ink',
     )
 
   return (

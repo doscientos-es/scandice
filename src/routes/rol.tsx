@@ -44,7 +44,7 @@ function RolePage() {
                 onClick={() => choose(role.id)}
                 className="text-left"
               >
-                <Card className="h-full p-6 transition-all hover:-translate-y-0.5 hover:border-brand">
+                <Card className="h-full p-6 transition-all hover:-translate-y-1 hover:border-brand hover:shadow-lg">
                   <Icon className="mb-4 size-7 text-brand" />
                   <h2 className="text-lg font-semibold">{role.label}</h2>
                   <p className="mt-1 text-sm text-muted">{role.description}</p>

@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react'
 import { maxPortions, recipeCost } from '@/shared/domain/recipes'
 import { formatMoney, formatQty, unitMeta } from '@/shared/domain/units'
 import { useAppState } from '@/shared/store/store'
-import { Badge, Card, EmptyState, PageHeader, buttonStyles, cn } from '@/shared/ui/primitives'
+import { Badge, Card, EmptyState, PageHeader, Tabs, buttonStyles } from '@/shared/ui/primitives'
 
 interface RecipesSearch {
   tipo?: 'final' | 'intermedia'
@@ -25,13 +25,6 @@ function RecipesPage() {
     (r) => !tipo || r.kind === (tipo === 'final' ? 'final' : 'intermediate'),
   )
 
-  const tab = (active: boolean) =>
-    cn(
-      'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
-      active ? 'bg-ink text-white' : 'bg-subtle text-muted hover:text-ink',
-    )
-  const filter = (next: RecipesSearch['tipo']) => () =>
-    void navigate({ search: { tipo: next }, replace: true })
 
   return (
     <>
@@ -50,56 +43,68 @@ function RecipesPage() {
         }
       />
 
-      <div className="mb-5 flex gap-2">
-        <button type="button" className={tab(!tipo)} onClick={filter(undefined)}>Todas</button>
-        <button type="button" className={tab(tipo === 'final')} onClick={filter('final')}>Finales</button>
-        <button type="button" className={tab(tipo === 'intermedia')} onClick={filter('intermedia')}>Intermedias</button>
+      <div className="mb-5">
+        <Tabs
+          value={tipo ?? 'todas'}
+          onChange={(id) =>
+            void navigate({ search: { tipo: id === 'todas' ? undefined : id }, replace: true })
+          }
+          options={[
+            { id: 'todas', label: 'Todas' },
+            { id: 'final', label: 'Finales' },
+            { id: 'intermedia', label: 'Intermedias' },
+          ]}
+        />
       </div>
 
       {list.length === 0 ? (
         <EmptyState title="No hay recetas de este tipo" />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <Card className="divide-y divide-line overflow-hidden">
           {list.map((r) => {
             const { portions, limiting } = maxPortions(r, state.recipes, state.ingredients)
             const cost = recipeCost(r, state.recipes, state.ingredients) / r.yieldQty
             const final = r.kind === 'final'
             return (
-              <Link key={r.id} to="/recetas/$recetaId" params={{ recetaId: r.id }}>
-                <Card className="h-full p-5 transition-all hover:-translate-y-0.5 hover:border-brand">
-                  <div className="mb-3 flex items-start justify-between gap-2">
-                    <h2 className="font-semibold">{r.name}</h2>
-                    <Badge tone={final ? 'brand' : 'neutral'}>{final ? 'Final' : 'Intermedia'}</Badge>
-                  </div>
-                  <p className="text-sm text-muted">
+              <Link
+                key={r.id}
+                to="/recetas/$recetaId"
+                params={{ recetaId: r.id }}
+                className="grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-1 px-5 py-4 transition-colors hover:bg-subtle sm:grid-cols-[2fr_1fr_1fr]"
+              >
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 font-medium">
+                    <span className="truncate">{r.name}</span>
+                    {!final && <Badge>Intermedia</Badge>}
+                  </p>
+                  <p className="text-xs text-muted">
                     {r.items.length} ingredientes · rinde {formatQty(r.yieldQty, r.unit)}
                   </p>
-                  <div className="mt-4 flex items-end justify-between">
-                    <div>
-                      <p className="tabular text-2xl font-semibold tracking-tight">{portions}</p>
-                      <p className="text-xs text-muted">
-                        {final ? 'raciones posibles' : 'tandas posibles'}
-                        {limiting && portions < 10 ? ` · limita ${limiting.name}` : ''}
-                      </p>
-                    </div>
-                    <div className="text-right text-sm text-muted">
-                      {final ? (
-                        <>
-                          <p className="tabular font-medium text-ink">{formatMoney(r.price)}</p>
-                          <p className="tabular text-xs">coste {formatMoney(cost)}</p>
-                        </>
-                      ) : (
-                        <p className="tabular text-xs">
-                          {formatMoney(cost * unitMeta[r.unit].scale)} / {unitMeta[r.unit].bigLabel}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </Card>
+                </div>
+                <div className="text-right sm:text-left">
+                  <p className="tabular text-sm font-medium">
+                    {portions} <span className="font-normal text-muted">{final ? 'raciones' : 'tandas'}</span>
+                  </p>
+                  {limiting && portions < 10 && (
+                    <p className="truncate text-xs text-warn">Limita {limiting.name}</p>
+                  )}
+                </div>
+                <div className="col-span-2 text-sm text-muted sm:col-span-1 sm:text-right">
+                  {final ? (
+                    <>
+                      <span className="tabular font-medium text-ink">{formatMoney(r.price)}</span>
+                      <span className="tabular text-xs"> · coste {formatMoney(cost)}</span>
+                    </>
+                  ) : (
+                    <span className="tabular text-xs">
+                      {formatMoney(cost * unitMeta[r.unit].scale)} / {unitMeta[r.unit].bigLabel}
+                    </span>
+                  )}
+                </div>
               </Link>
             )
           })}
-        </div>
+        </Card>
       )}
     </>
   )

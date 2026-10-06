@@ -6,8 +6,8 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
 type Size = 'md' | 'lg'
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-ink text-white hover:bg-ink/90 disabled:bg-ink/30',
-  secondary: 'bg-surface text-ink border border-line hover:bg-subtle disabled:text-muted/60',
+  primary: 'bg-brand text-white shadow-sm hover:bg-brand-strong disabled:bg-brand/30 disabled:shadow-none',
+  secondary: 'bg-surface text-ink border border-line shadow-sm hover:bg-subtle disabled:text-muted/60',
   ghost: 'text-muted hover:bg-subtle hover:text-ink',
   danger: 'bg-bad-soft text-bad hover:bg-bad/15',
 }
@@ -20,7 +20,7 @@ const sizes: Record<Size, string> = {
 export const buttonStyles = (variant: Variant = 'primary', size: Size = 'md', extra?: string) =>
   cn(
     'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-colors',
-    'disabled:cursor-not-allowed select-none whitespace-nowrap',
+    'disabled:cursor-not-allowed select-none whitespace-nowrap active:scale-[0.98]',
     variants[variant],
     sizes[size],
     extra,
@@ -76,13 +76,44 @@ export function PageHeader({
   actions?: ReactNode
 }) {
   return (
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-        {description && <p className="mt-1 text-muted">{description}</p>}
+        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+        {description && <p className="mt-1 text-sm text-muted">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </header>
+  )
+}
+
+/** Pestañas con subrayado: más sobrias que los botones redondeados. */
+export function Tabs<T extends string>({
+  value,
+  options,
+  onChange,
+}: {
+  value: T
+  options: { id: T; label: string }[]
+  onChange: (id: T) => void
+}) {
+  return (
+    <div role="tablist" className="flex gap-6 border-b border-line">
+      {options.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          role="tab"
+          aria-selected={o.id === value}
+          onClick={() => onChange(o.id)}
+          className={cn(
+            '-mb-px border-b-2 pb-2.5 text-sm font-medium transition-colors',
+            o.id === value ? 'border-ink text-ink' : 'border-transparent text-muted hover:text-ink',
+          )}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
   )
 }
 
