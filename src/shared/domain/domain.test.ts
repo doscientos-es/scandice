@@ -4,7 +4,7 @@ import { toCsv } from './csv'
 import { flattenRecipe, maxPortions, needsForSales, shortagesOf } from './recipes'
 import { createSeedState } from './seed'
 import { packTotal, stockLevel, validateDraft } from './stock'
-import { confirmNote, registerSales } from './transitions'
+import { confirmNote, registerSales, updateNote } from './transitions'
 import type { NoteDraft, NoteLine } from './types'
 
 const line = (over: Partial<NoteLine>): NoteLine => ({
@@ -35,6 +35,17 @@ describe('packs', () => {
 
   it('convierte kg a gramos con el contenido por unidad', () => {
     expect(packTotal(line({ packs: 2, unitsPerPack: 1, sizePerUnit: 10000 }))).toBe(20000)
+  })
+})
+
+describe('editar albarán', () => {
+  it('recalcula el stock con la diferencia de packs', () => {
+    const base = createSeedState()
+    const before = base.ingredients.find((i) => i.id === 'cola')!.stock
+    const { state, note } = confirmNote(base, draft([line({ packs: 3 })])) // +9
+    const edited = updateNote(state, { ...note, lines: [{ ...note.lines[0], packs: 1 }] }) // +3 en total
+    expect(edited.ingredients.find((i) => i.id === 'cola')!.stock).toBe(before + 3)
+    expect(edited.notes[0].lines[0].packs).toBe(1)
   })
 })
 

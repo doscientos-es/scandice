@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Pencil, Search } from 'lucide-react'
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { Pencil, ScanLine, Search } from 'lucide-react'
 import { useState } from 'react'
 
 import { downloadCsv, todayStamp } from '@/shared/domain/csv'
@@ -11,7 +11,7 @@ import { actions, getState, useAppState } from '@/shared/store/store'
 import { NumberInput, Field, Input, Select } from '@/shared/ui/form'
 import { ExportActions } from '@/shared/ui/export-actions'
 import { Modal } from '@/shared/ui/modal'
-import { Badge, Button, Card, EmptyState, PageHeader, StockBar, Tabs, cn } from '@/shared/ui/primitives'
+import { Badge, Button, Card, EmptyState, PageHeader, StockBar, Tabs, buttonStyles, cn } from '@/shared/ui/primitives'
 import { toast } from '@/shared/ui/toast'
 
 interface StockSearch {
@@ -137,7 +137,15 @@ function StockPage() {
       {vista === 'movimientos' ? (
         <Card className="divide-y divide-line">
           {state.movements.length === 0 && (
-            <EmptyState title="Sin movimientos todavía">Aquí aparecerán albaranes, ventas y ajustes.</EmptyState>
+            <EmptyState
+              title="Sin movimientos todavía"
+              action={
+                <Link to="/albaranes/nuevo" className={buttonStyles('primary')}>
+                  <ScanLine className="size-4" /> Escanear albarán
+                </Link>
+              }
+            >
+              Aquí aparecerán albaranes, ventas y ajustes.</EmptyState>
           )}
           {state.movements.slice(0, 100).map((m) => {
             const ing = state.ingredients.find((i) => i.id === m.ingredientId)
@@ -157,7 +165,15 @@ function StockPage() {
           })}
         </Card>
       ) : rows.length === 0 ? (
-        <EmptyState title="No hay ingredientes que coincidan" icon={<Search className="size-5" />}>
+        <EmptyState
+          title="No hay ingredientes que coincidan"
+          icon={<Search className="size-5" />}
+          action={
+            <Button variant="secondary" onClick={() => set({ q: undefined, estado: undefined })}>
+              Quitar filtros
+            </Button>
+          }
+        >
           Prueba con otro nombre o quita el filtro de stock bajo.
         </EmptyState>
       ) : (

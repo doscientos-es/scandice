@@ -24,7 +24,6 @@ function NotesPage() {
       (!term || n.supplier.toLowerCase().includes(term) || n.number.toLowerCase().includes(term)) &&
       (!cutoff || n.date >= cutoff),
   )
-  const filtering = term !== '' || period !== 'todo'
 
   return (
     <>
