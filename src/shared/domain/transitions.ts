@@ -74,6 +74,36 @@ export function confirmNote(state: AppState, draft: NoteDraft): { state: AppStat
   }
 }
 
+/**
+ * Edita un albarán ya guardado (proveedor, nº, fecha, packs y total por línea)
+ * y recalcula el stock con la diferencia respecto a lo que se sumó antes.
+ */
+export function updateNote(state: AppState, updated: DeliveryNote): AppState {
+  const old = state.notes.find((n) => n.id === updated.id)
+  if (!old) return state
+  const label = `Corrección albarán ${updated.number || updated.supplier}`
+  const deltas = new Map<string, number>()
+  for (const l of old.lines) {
+    if (l.ingredientId) deltas.set(l.ingredientId, (deltas.get(l.ingredientId) ?? 0) - packTotal(l))
+  }
+  for (const l of updated.lines) {
+    if (l.ingredientId) deltas.set(l.ingredientId, (deltas.get(l.ingredientId) ?? 0) + packTotal(l))
+  }
+  const movements: StockMovement[] = []
+  const ingredients = state.ingredients.map((i) => {
+    const d = round(deltas.get(i.id) ?? 0)
+    if (d === 0) return i
+    movements.push(movement(i.id, d, 'ajuste', label))
+    return { ...i, stock: Math.max(0, round(i.stock + d)) }
+  })
+  return {
+    ...state,
+    ingredients,
+    notes: state.notes.map((n) => (n.id === updated.id ? updated : n)),
+    movements: [...movements, ...state.movements],
+  }
+}
+
 /** Registra ventas y descuenta del stock los ingredientes base gastados. */
 export function registerSales(state: AppState, lines: SaleLine[]): AppState {
   const needs = needsForSales(lines, state.recipes)

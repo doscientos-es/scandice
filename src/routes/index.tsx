@@ -77,9 +77,21 @@ function Dashboard() {
                     </span>
                   </div>
                   <StockBar stock={i.stock} min={i.minStock} />
+                  <Link
+                    to="/stock"
+                    search={{ q: i.name }}
+                    className="mt-1 inline-block text-xs text-brand hover:underline"
+                  >
+                    Ajustar stock
+                  </Link>
                 </li>
               ))}
             </ul>
+          )}
+          {low.length > 0 && canAccess(state.role, 'albaranes') && (
+            <Link to="/albaranes/nuevo" className={buttonStyles('secondary', 'md', 'mt-4 w-full')}>
+              <ScanLine className="size-4" /> Reponer: escanear albarán
+            </Link>
           )}
         </section>
 

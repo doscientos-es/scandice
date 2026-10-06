@@ -9,7 +9,7 @@ import {
   ScanLine,
   ShoppingBag,
 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { roleById } from '../domain/roles'
@@ -27,6 +27,16 @@ const NAV = [
   { section: 'ventas', to: '/ventas', label: 'Ventas', icon: ShoppingBag },
 ] as const satisfies readonly { section: Section; to: string; label: string; icon: unknown }[]
 
+function PageSkeleton() {
+  return (
+    <div className="animate-pulse space-y-4" aria-busy="true" aria-label="Cargando">
+      <div className="h-7 w-48 rounded-lg bg-subtle" />
+      <div className="h-4 w-72 max-w-full rounded bg-subtle" />
+      <div className="mt-6 h-64 rounded-xl bg-subtle" />
+    </div>
+  )
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const state = useAppState()
   const role = roleById(state.role)
@@ -34,6 +44,20 @@ export function AppShell({ children }: { children: ReactNode }) {
   const lowCount = state.ingredients.filter(isLowOrOut).length
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const current = NAV.find((n) => (n.to === '/' ? pathname === '/' : pathname.startsWith(n.to)))
+
+  // Esqueleto breve (250 ms) al cambiar de sección; no en la primera carga.
+  const [loading, setLoading] = useState(false)
+  const section = current?.to
+  const firstRender = useRef(true)
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false
+      return
+    }
+    setLoading(true)
+    const id = window.setTimeout(() => setLoading(false), 250)
+    return () => window.clearTimeout(id)
+  }, [section])
 
   useEffect(() => {
     document.title = current ? `${current.label} · ScanDice` : 'ScanDice'
@@ -48,8 +72,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const canScan = role?.sections.includes('albaranes')
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[16rem_1fr]">
-      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-line bg-surface px-3 py-4 lg:flex">
+    <div className="min-h-dvh lg:grid lg:grid-cols-[16rem_1fr] print:block">
+      <aside className="sticky top-0 hidden h-dvh flex-col border-r border-line bg-surface px-3 py-4 lg:flex print:hidden">
         <Link to="/" className="mb-5 flex items-center gap-2.5 rounded-lg px-2 py-1.5">
           <span className="grid size-8 place-items-center rounded-lg bg-ink text-white">
             <ScanLine className="size-4" />
@@ -121,7 +145,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="min-w-0">
-        <header className="sticky top-0 z-10 flex h-12 items-center gap-2 border-b border-line bg-surface/90 px-4 text-sm backdrop-blur sm:px-8 lg:px-10">
+        <header className="sticky top-0 z-10 flex print:hidden h-12 items-center gap-2 border-b border-line bg-surface/90 px-4 text-sm backdrop-blur sm:px-8 lg:px-10">
           <span className="text-muted">ScanDice</span>
           <span className="text-muted/50">/</span>
           <span className="font-medium">{current?.label ?? 'Inicio'}</span>
@@ -135,13 +159,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </span>
         </header>
         <main className="px-4 pt-6 pb-28 sm:px-8 lg:px-10 lg:pb-10">
-          <div className="mx-auto max-w-6xl">{children}</div>
+          <div className="mx-auto max-w-6xl">{loading ? <PageSkeleton /> : children}</div>
         </main>
       </div>
 
       <nav
         aria-label="Principal"
-        className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-surface/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-surface/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden print:hidden"
       >
         {items.map(({ to, label, icon: Icon }) => (
           <Link

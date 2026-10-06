@@ -8,7 +8,7 @@ import type { StockLevel } from '@/shared/domain/stock'
 import type { Ingredient } from '@/shared/domain/types'
 import { formatDateTime, formatQty, unitMeta } from '@/shared/domain/units'
 import { actions, getState, useAppState } from '@/shared/store/store'
-import { NumberInput, Field, Input } from '@/shared/ui/form'
+import { NumberInput, Field, Input, Select } from '@/shared/ui/form'
 import { ExportActions } from '@/shared/ui/export-actions'
 import { Modal } from '@/shared/ui/modal'
 import { Badge, Button, Card, EmptyState, PageHeader, StockBar, Tabs, cn } from '@/shared/ui/primitives'
@@ -18,6 +18,7 @@ interface StockSearch {
   q?: string
   estado?: 'todos' | 'bajo'
   vista?: 'ingredientes' | 'movimientos'
+  orden?: 'estado' | 'stock'
 }
 
 export const Route = createFileRoute('/stock')({
@@ -25,6 +26,7 @@ export const Route = createFileRoute('/stock')({
     q: s.q ? String(s.q) : undefined,
     estado: s.estado === 'bajo' ? 'bajo' : undefined,
     vista: s.vista === 'movimientos' ? 'movimientos' : undefined,
+    orden: s.orden === 'estado' || s.orden === 'stock' ? s.orden : undefined,
   }),
   component: StockPage,
 })
@@ -34,6 +36,10 @@ const levelBadge: Record<StockLevel, { tone: 'ok' | 'warn' | 'bad'; label: strin
   low: { tone: 'warn', label: 'Poco stock' },
   out: { tone: 'bad', label: 'Agotado' },
 }
+
+const levelRank: Record<StockLevel, number> = { out: 0, low: 1, ok: 2 }
+/** Nivel respecto al mínimo: cuanto menor, más urgente reponer. */
+const fill = (i: Ingredient) => i.stock / Math.max(i.minStock, 1e-9)
 
 function StockPage() {
   const search = Route.useSearch()
@@ -47,7 +53,12 @@ function StockPage() {
   const rows = state.ingredients
     .filter((i) => !q || i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q))
     .filter((i) => !onlyLow || stockLevel(i) !== 'ok')
-    .sort((a, b) => a.name.localeCompare(b.name, 'es'))
+    .sort((a, b) => {
+      const byName = a.name.localeCompare(b.name, 'es')
+      if (search.orden === 'estado') return levelRank[stockLevel(a)] - levelRank[stockLevel(b)] || byName
+      if (search.orden === 'stock') return fill(a) - fill(b) || byName
+      return byName
+    })
 
   const set = (patch: Partial<StockSearch>) =>
     void navigate({ search: (prev) => ({ ...prev, ...patch }), replace: true })
@@ -97,16 +108,28 @@ function StockPage() {
           ]}
         />
         {vista === 'ingredientes' && (
-          <div className="relative w-full sm:w-64">
-            <Search className="pointer-events-none absolute top-3 left-3 size-4 text-muted" />
-            <Input
-              className="pl-9"
-              placeholder="Buscar ingrediente…"
-              aria-label="Buscar ingrediente"
-              data-search
-              defaultValue={search.q}
-              onChange={(e) => set({ q: e.target.value || undefined })}
-            />
+          <div className="flex w-full gap-2 sm:w-auto">
+            <div className="relative min-w-0 flex-1 sm:w-64 sm:flex-none">
+              <Search className="pointer-events-none absolute top-3 left-3 size-4 text-muted" />
+              <Input
+                className="pl-9"
+                placeholder="Buscar ingrediente…"
+                aria-label="Buscar ingrediente"
+                data-search
+                defaultValue={search.q}
+                onChange={(e) => set({ q: e.target.value || undefined })}
+              />
+            </div>
+            <Select
+              className="w-auto shrink-0"
+              aria-label="Ordenar"
+              value={search.orden ?? ''}
+              onChange={(e) => set({ orden: (e.target.value || undefined) as StockSearch['orden'] })}
+            >
+              <option value="">Nombre</option>
+              <option value="estado">Más urgentes</option>
+              <option value="stock">Menos stock</option>
+            </Select>
           </div>
         )}
       </div>

@@ -1,10 +1,13 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ChefHat, Plus } from 'lucide-react'
 
+import { downloadCsv, todayStamp } from '@/shared/domain/csv'
+import { recipesToRows } from '@/shared/domain/export-rows'
 import { maxPortions, recipeCost } from '@/shared/domain/recipes'
 import { formatMoney, formatQty, unitMeta } from '@/shared/domain/units'
 import { useAppState } from '@/shared/store/store'
-import { Badge, Card, EmptyState, PageHeader, Tabs, buttonStyles } from '@/shared/ui/primitives'
+import { ExportActions } from '@/shared/ui/export-actions'
+import { Badge, Card, EmptyState, PageHeader, Tabs, buttonStyles, cn } from '@/shared/ui/primitives'
 
 interface RecipesSearch {
   tipo?: 'final' | 'intermedia'
@@ -33,11 +36,18 @@ function RecipesPage() {
         description="Las finales se venden; las intermedias (salsas, bases…) se usan dentro de otras recetas."
         actions={
           <>
-            <Link to="/recetas/nueva" search={{ tipo: 'intermedia' }} className={buttonStyles('secondary')}>
-              <Plus className="size-4" /> Receta intermedia
+            {list.length > 0 && (
+              <ExportActions
+                onExport={() =>
+                  downloadCsv(`recetas-${todayStamp()}`, recipesToRows(list, state.recipes, state.ingredients))
+                }
+              />
+            )}
+            <Link to="/recetas/nueva" search={{ tipo: 'intermedia' }} className={cn(buttonStyles('secondary'), 'print:hidden')}>
+              <Plus className="size-4" /> <span className="max-sm:sr-only">Receta intermedia</span>
             </Link>
-            <Link to="/recetas/nueva" search={{ tipo: 'final' }} className={buttonStyles('primary')}>
-              <Plus className="size-4" /> Nueva receta
+            <Link to="/recetas/nueva" search={{ tipo: 'final' }} className={cn(buttonStyles('primary'), 'print:hidden')}>
+              <Plus className="size-4" /> <span className="max-sm:sr-only">Nueva receta</span>
             </Link>
           </>
         }

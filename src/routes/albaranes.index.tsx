@@ -1,17 +1,31 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { ReceiptText, ScanLine } from 'lucide-react'
+import { ReceiptText, ScanLine, Search } from 'lucide-react'
+import { useState } from 'react'
 
 import { downloadCsv, todayStamp } from '@/shared/domain/csv'
 import { notesToRows } from '@/shared/domain/export-rows'
 import { formatDate, formatMoney } from '@/shared/domain/units'
 import { useAppState } from '@/shared/store/store'
 import { ExportActions } from '@/shared/ui/export-actions'
-import { Card, EmptyState, PageHeader, buttonStyles, cn } from '@/shared/ui/primitives'
+import { Input, Select } from '@/shared/ui/form'
+import { Button, Card, EmptyState, PageHeader, buttonStyles, cn } from '@/shared/ui/primitives'
 
 export const Route = createFileRoute('/albaranes/')({ component: NotesPage })
 
 function NotesPage() {
-  const { notes, ingredients } = useAppState()
+  const { notes: all, ingredients } = useAppState()
+  const [q, setQ] = useState('')
+  const [period, setPeriod] = useState<'todo' | '7' | '30'>('todo')
+
+  const cutoff = period === 'todo' ? '' : new Date(Date.now() - Number(period) * 864e5).toISOString().slice(0, 10)
+  const term = q.trim().toLowerCase()
+  const notes = all.filter(
+    (n) =>
+      (!term || n.supplier.toLowerCase().includes(term) || n.number.toLowerCase().includes(term)) &&
+      (!cutoff || n.date >= cutoff),
+  )
+  const filtering = term !== '' || period !== 'todo'
+
   return (
     <>
       <PageHeader
@@ -28,7 +42,43 @@ function NotesPage() {
           </>
         }
       />
-      {notes.length === 0 ? (
+      {all.length > 0 && (
+        <div className="mb-5 flex flex-col gap-2 sm:flex-row print:hidden">
+          <div className="relative flex-1 sm:max-w-xs">
+            <Search className="pointer-events-none absolute top-3 left-3 size-4 text-muted" />
+            <Input
+              className="pl-9"
+              placeholder="Buscar proveedor o nº…"
+              aria-label="Buscar albarán"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+          </div>
+          <Select
+            className="sm:w-auto"
+            aria-label="Periodo"
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as typeof period)}
+          >
+            <option value="todo">Todo el historial</option>
+            <option value="7">Últimos 7 días</option>
+            <option value="30">Últimos 30 días</option>
+          </Select>
+        </div>
+      )}
+      {all.length > 0 && notes.length === 0 ? (
+        <EmptyState
+          title="Ningún albarán coincide"
+          icon={<Search className="size-5" />}
+          action={
+            <Button variant="secondary" onClick={() => { setQ(''); setPeriod('todo') }}>
+              Quitar filtros
+            </Button>
+          }
+        >
+          Prueba con otro proveedor o amplía el periodo.
+        </EmptyState>
+      ) : all.length === 0 ? (
         <EmptyState
           title="Aún no hay albaranes"
           icon={<ReceiptText className="size-5" />}

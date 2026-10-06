@@ -1,4 +1,4 @@
-import type { Ingredient, Recipe, SaleLine } from './types'
+import type { Ingredient, Recipe, RecipeItem, SaleLine, Unit } from './types'
 import { round } from './units'
 
 export type Needs = Map<string, number>
@@ -87,6 +87,25 @@ export function recipeCost(recipe: Recipe, recipes: Recipe[], ingredients: Ingre
     if (ingredient) cost += qty * ingredient.costPerUnit
   }
   return cost
+}
+
+/** Coste de una línea de receta (ingrediente o receta intermedia). */
+export function itemCost(
+  item: RecipeItem,
+  recipes: Recipe[],
+  ingredients: Ingredient[],
+): { name: string; unit: Unit | null; cost: number } {
+  if (item.kind === 'ingredient') {
+    const ing = ingredients.find((i) => i.id === item.refId)
+    return { name: ing?.name ?? '?', unit: ing?.unit ?? null, cost: item.quantity * (ing?.costPerUnit ?? 0) }
+  }
+  const sub = recipes.find((r) => r.id === item.refId)
+  if (!sub || sub.yieldQty <= 0) return { name: '?', unit: null, cost: 0 }
+  return {
+    name: sub.name,
+    unit: sub.unit,
+    cost: (item.quantity / sub.yieldQty) * recipeCost(sub, recipes, ingredients),
+  }
 }
 
 /** Recetas (finales o intermedias) que usan una receta intermedia. */
