@@ -8,6 +8,7 @@ import { formatDate, formatMoney } from '@/shared/domain/units'
 import { useAppState } from '@/shared/store/store'
 import { ExportActions } from '@/shared/ui/export-actions'
 import { Input, Select } from '@/shared/ui/form'
+import { Pagination, usePagination } from '@/shared/ui/pagination'
 import { Button, Card, EmptyState, PageHeader, buttonStyles, cn } from '@/shared/ui/primitives'
 
 export const Route = createFileRoute('/albaranes/')({ component: NotesPage })
@@ -24,6 +25,7 @@ function NotesPage() {
       (!term || n.supplier.toLowerCase().includes(term) || n.number.toLowerCase().includes(term)) &&
       (!cutoff || n.date >= cutoff),
   )
+  const pageData = usePagination(notes, `${term}|${period}`)
 
   return (
     <>
@@ -90,23 +92,26 @@ function NotesPage() {
           Escanea el primero para sumar stock automáticamente.
         </EmptyState>
       ) : (
-        <Card className="divide-y divide-line overflow-hidden">
-          {notes.map((n) => (
-            <Link
-              key={n.id}
-              to="/albaranes/$albaranId"
-              params={{ albaranId: n.id }}
-              className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-5 py-3.5 text-sm hover:bg-subtle"
-            >
-              <ReceiptText className="size-4 shrink-0 text-muted" />
-              <span className="min-w-0 truncate font-medium">{n.supplier}</span>
-              <span className="text-muted">{n.number && `Nº ${n.number} · `}{formatDate(n.date)}</span>
-              <span className="tabular w-full pl-7 text-muted sm:ml-auto sm:w-auto sm:pl-0">
-                {n.lines.length} líneas · {formatMoney(n.lines.reduce((s, l) => s + l.lineTotal, 0))}
-              </span>
-            </Link>
-          ))}
-        </Card>
+        <>
+          <Card className="divide-y divide-line overflow-hidden">
+            {pageData.items.map((n) => (
+              <Link
+                key={n.id}
+                to="/albaranes/$albaranId"
+                params={{ albaranId: n.id }}
+                className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-5 py-3.5 text-sm hover:bg-subtle"
+              >
+                <ReceiptText className="size-4 shrink-0 text-muted" />
+                <span className="min-w-0 truncate font-medium">{n.supplier}</span>
+                <span className="text-muted">{n.number && `Nº ${n.number} · `}{formatDate(n.date)}</span>
+                <span className="tabular w-full pl-7 text-muted sm:ml-auto sm:w-auto sm:pl-0">
+                  {n.lines.length} líneas · {formatMoney(n.lines.reduce((s, l) => s + l.lineTotal, 0))}
+                </span>
+              </Link>
+            ))}
+          </Card>
+          <Pagination {...pageData} />
+        </>
       )}
     </>
   )

@@ -46,13 +46,16 @@ export function NotePreview({
           const add = packTotal(l)
           const before = ing?.stock ?? 0
           // Borrador: se compara con el último coste conocido. Albarán guardado: solo con albaranes anteriores.
-          const change = compare
-            ? lineChange(l, compare.notes, {
-              date: draft.date || '9999-12-31',
-              noteId: compare.noteId,
-              fallback: compare.noteId ? undefined : ing?.costPerUnit,
-            })
-            : null
+          // Si el albarán ya guardó su variación de precio, se muestra esa (no cambia con albaranes posteriores).
+          const change = l.priceChange !== undefined
+            ? l.priceChange
+            : compare
+              ? lineChange(l, compare.notes, {
+                date: draft.date || '9999-12-31',
+                noteId: compare.noteId,
+                fallback: compare.noteId ? undefined : ing?.costPerUnit,
+              })
+              : null
           return (
             <li key={l.id} className="px-5 py-3 text-sm">
               <div className="flex items-center justify-between gap-2">

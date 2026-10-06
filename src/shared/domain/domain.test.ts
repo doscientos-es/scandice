@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { toCsv } from './csv'
+import { paginate } from './paginate'
 import { lineChange, priceHistory, priceStats, recentRises } from './prices'
 import { flattenRecipe, maxPortions, needsForSales, shortagesOf } from './recipes'
 import { createSeedState } from './seed'
@@ -172,4 +173,23 @@ describe('precios', () => {
     expect(stats.trend).toBeCloseTo(0.25)
     expect(priceStats(priceHistory(s2.state.notes, 'nada'))).toBeNull()
   })
+
+  it('guarda la variación de precio en la línea del albarán', () => {
+    const s1 = confirmNote(createSeedState(), { ...draft([line({ lineTotal: 9 })]), date: '2026-10-01' })
+    const s2 = confirmNote(s1.state, { ...draft([line({ lineTotal: 10.8 })]), date: '2026-10-05' })
+    expect(s2.note.lines[0]!.priceChange?.pct).toBeCloseTo(0.2)
+    // Un albarán posterior no altera lo guardado.
+    const s3 = confirmNote(s2.state, { ...draft([line({ lineTotal: 20 })]), date: '2026-10-09' })
+    expect(s3.state.notes.find((n) => n.id === s2.note.id)!.lines[0]!.priceChange?.pct).toBeCloseTo(0.2)
+  })
+
+  it('pagina listas y ajusta páginas fuera de rango', () => {
+    const list = Array.from({ length: 45 }, (_, i) => i)
+    expect(paginate(list, 1)).toMatchObject({ pageCount: 3, from: 1, to: 20, total: 45 })
+    expect(paginate(list, 3).items).toHaveLength(5)
+    expect(paginate(list, 99).page).toBe(3)
+    expect(paginate(list, 0).page).toBe(1)
+    expect(paginate([], 1)).toMatchObject({ pageCount: 1, from: 0, to: 0, items: [] })
+  })
+
 })

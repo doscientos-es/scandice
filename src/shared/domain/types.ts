@@ -1,3 +1,6 @@
+import type { PriceChange } from './prices'
+
+
 /** Unidad mínima de stock. Todo se guarda siempre en esta unidad. */
 export type Unit = 'ud' | 'g' | 'ml'
 
@@ -51,6 +54,11 @@ export interface NoteLine {
   lineTotal: number
   /** Confianza de la IA (0-1). */
   confidence: number
+  /**
+   * Variación de precio respecto a la compra anterior, guardada al confirmar el albarán.
+   * `null` = sin cambio relevante; `undefined` = albarán anterior a esta función o borrador.
+   */
+  priceChange?: PriceChange | null
 }
 
 export interface NoteDraft {

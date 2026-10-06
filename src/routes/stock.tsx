@@ -12,6 +12,7 @@ import { NumberInput, Field, Input, Select } from '@/shared/ui/form'
 import { ExportActions } from '@/shared/ui/export-actions'
 import { Modal } from '@/shared/ui/modal'
 import { Badge, Button, Card, EmptyState, PageHeader, StockBar, Tabs, buttonStyles, cn } from '@/shared/ui/primitives'
+import { Pagination, usePagination } from '@/shared/ui/pagination'
 import { toast } from '@/shared/ui/toast'
 
 interface StockSearch {
@@ -65,6 +66,10 @@ function StockPage() {
 
   const shopping = shoppingList(state.ingredients)
   const shoppingTotal = shopping.reduce((sum, s) => sum + s.cost, 0)
+
+  const ingredientsPage = usePagination(rows, `${q}|${onlyLow}|${search.orden}`)
+  const shoppingPage = usePagination(shopping, 'compra')
+  const movementsPage = usePagination(state.movements, 'movimientos')
 
   const tabValue = vista === 'movimientos' || vista === 'compra' ? vista : onlyLow ? 'bajo' : 'todos'
   const onTab = (id: 'todos' | 'bajo' | 'movimientos' | 'compra') =>
@@ -159,57 +164,63 @@ function StockPage() {
             Todos los ingredientes están por encima del mínimo.
           </EmptyState>
         ) : (
-          <Card className="divide-y divide-line overflow-hidden">
-            {shopping.map((s) => (
-              <div key={s.ingredient.id} className="flex items-center gap-3 px-5 py-3 text-sm">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{s.ingredient.name}</p>
-                  <p className="text-xs text-muted">
-                    Quedan {formatQty(s.ingredient.stock, s.ingredient.unit)} · mín. {formatQty(s.ingredient.minStock, s.ingredient.unit)}
-                  </p>
+          <>
+            <Card className="divide-y divide-line overflow-hidden">
+              {shoppingPage.items.map((s) => (
+                <div key={s.ingredient.id} className="flex items-center gap-3 px-5 py-3 text-sm">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{s.ingredient.name}</p>
+                    <p className="text-xs text-muted">
+                      Quedan {formatQty(s.ingredient.stock, s.ingredient.unit)} · mín. {formatQty(s.ingredient.minStock, s.ingredient.unit)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="tabular font-semibold">Pedir {formatQty(s.toOrder, s.ingredient.unit)}</p>
+                    <p className="tabular text-xs text-muted">≈ {formatMoney(s.cost)}</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="tabular font-semibold">Pedir {formatQty(s.toOrder, s.ingredient.unit)}</p>
-                  <p className="tabular text-xs text-muted">≈ {formatMoney(s.cost)}</p>
-                </div>
+              ))}
+              <div className="flex justify-between bg-subtle/60 px-5 py-3 text-sm font-medium">
+                <span>Total estimado</span>
+                <span className="tabular">{formatMoney(shoppingTotal)}</span>
               </div>
-            ))}
-            <div className="flex justify-between bg-subtle/60 px-5 py-3 text-sm font-medium">
-              <span>Total estimado</span>
-              <span className="tabular">{formatMoney(shoppingTotal)}</span>
-            </div>
-          </Card>
+            </Card>
+            <Pagination {...shoppingPage} />
+          </>
         )
       ) : vista === 'movimientos' ? (
-        <Card className="divide-y divide-line">
-          {state.movements.length === 0 && (
-            <EmptyState
-              title="Sin movimientos todavía"
-              action={
-                <Link to="/albaranes/nuevo" className={buttonStyles('primary')}>
-                  <ScanLine className="size-4" /> Escanear albarán
-                </Link>
-              }
-            >
-              Aquí aparecerán albaranes, ventas y ajustes.</EmptyState>
-          )}
-          {state.movements.slice(0, 100).map((m) => {
-            const ing = state.ingredients.find((i) => i.id === m.ingredientId)
-            return (
-              <div key={m.id} className="flex items-center gap-3 px-5 py-3 text-sm">
-                <span className="w-24 shrink-0 text-xs text-muted">{formatDateTime(m.at)}</span>
-                <span className="min-w-0 flex-1 truncate">
-                  <span className="font-medium">{ing?.name}</span>
-                  <span className="text-muted"> · {m.label}</span>
-                </span>
-                <span className={cn('tabular font-medium', m.delta > 0 ? 'text-ok' : 'text-bad')}>
-                  {m.delta > 0 ? '+' : ''}
-                  {ing ? formatQty(m.delta, ing.unit) : m.delta}
-                </span>
-              </div>
-            )
-          })}
-        </Card>
+        <>
+          <Card className="divide-y divide-line">
+            {state.movements.length === 0 && (
+              <EmptyState
+                title="Sin movimientos todavía"
+                action={
+                  <Link to="/albaranes/nuevo" className={buttonStyles('primary')}>
+                    <ScanLine className="size-4" /> Escanear albarán
+                  </Link>
+                }
+              >
+                Aquí aparecerán albaranes, ventas y ajustes.</EmptyState>
+            )}
+            {movementsPage.items.map((m) => {
+              const ing = state.ingredients.find((i) => i.id === m.ingredientId)
+              return (
+                <div key={m.id} className="flex items-center gap-3 px-5 py-3 text-sm">
+                  <span className="w-24 shrink-0 text-xs text-muted">{formatDateTime(m.at)}</span>
+                  <span className="min-w-0 flex-1 truncate">
+                    <span className="font-medium">{ing?.name}</span>
+                    <span className="text-muted"> · {m.label}</span>
+                  </span>
+                  <span className={cn('tabular font-medium', m.delta > 0 ? 'text-ok' : 'text-bad')}>
+                    {m.delta > 0 ? '+' : ''}
+                    {ing ? formatQty(m.delta, ing.unit) : m.delta}
+                  </span>
+                </div>
+              )
+            })}
+          </Card>
+          <Pagination {...movementsPage} />
+        </>
       ) : rows.length === 0 ? (
         <EmptyState
           title="No hay ingredientes que coincidan"
@@ -223,42 +234,45 @@ function StockPage() {
           Prueba con otro nombre o quita el filtro de stock bajo.
         </EmptyState>
       ) : (
-        <Card className="divide-y divide-line overflow-hidden">
-          <div className="hidden grid-cols-[1.4fr_1fr_8rem_2.5rem] gap-x-4 bg-subtle/60 px-5 py-2 text-xs font-medium text-muted sm:grid">
-            <span>Ingrediente</span>
-            <span>Stock</span>
-            <span>Estado</span>
-            <span className="sr-only">Acciones</span>
-          </div>
-          {rows.map((i) => {
-            const badge = levelBadge[stockLevel(i)]
-            return (
-              <div key={i.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-5 py-3 transition-colors hover:bg-subtle/50 sm:grid-cols-[1.4fr_1fr_8rem_2.5rem]">
-                <div className="min-w-0">
-                  <Link
-                    to="/ingredientes/$ingredientId"
-                    params={{ ingredientId: i.id }}
-                    className="block truncate font-medium hover:text-brand hover:underline"
-                  >
-                    {i.name}
-                  </Link>
-                  <p className="text-xs text-muted">{i.category}</p>
-                </div>
-                <div className="order-last col-span-2 sm:order-0 sm:col-span-1">
-                  <div className="tabular mb-1.5 flex justify-between text-sm">
-                    <span className="font-semibold">{formatQty(i.stock, i.unit)}</span>
-                    <span className="text-xs text-muted">mín. {formatQty(i.minStock, i.unit)}</span>
+        <>
+          <Card className="divide-y divide-line overflow-hidden">
+            <div className="hidden grid-cols-[1.4fr_1fr_8rem_2.5rem] gap-x-4 bg-subtle/60 px-5 py-2 text-xs font-medium text-muted sm:grid">
+              <span>Ingrediente</span>
+              <span>Stock</span>
+              <span>Estado</span>
+              <span className="sr-only">Acciones</span>
+            </div>
+            {ingredientsPage.items.map((i) => {
+              const badge = levelBadge[stockLevel(i)]
+              return (
+                <div key={i.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-5 py-3 transition-colors hover:bg-subtle/50 sm:grid-cols-[1.4fr_1fr_8rem_2.5rem]">
+                  <div className="min-w-0">
+                    <Link
+                      to="/ingredientes/$ingredientId"
+                      params={{ ingredientId: i.id }}
+                      className="block truncate font-medium hover:text-brand hover:underline"
+                    >
+                      {i.name}
+                    </Link>
+                    <p className="text-xs text-muted">{i.category}</p>
                   </div>
-                  <StockBar stock={i.stock} min={i.minStock} />
+                  <div className="order-last col-span-2 sm:order-0 sm:col-span-1">
+                    <div className="tabular mb-1.5 flex justify-between text-sm">
+                      <span className="font-semibold">{formatQty(i.stock, i.unit)}</span>
+                      <span className="text-xs text-muted">mín. {formatQty(i.minStock, i.unit)}</span>
+                    </div>
+                    <StockBar stock={i.stock} min={i.minStock} />
+                  </div>
+                  <Badge tone={badge.tone}>{badge.label}</Badge>
+                  <Button variant="ghost" className="print:hidden" aria-label={`Ajustar ${i.name}`} onClick={() => setEditing(i)}>
+                    <Pencil className="size-4" />
+                  </Button>
                 </div>
-                <Badge tone={badge.tone}>{badge.label}</Badge>
-                <Button variant="ghost" className="print:hidden" aria-label={`Ajustar ${i.name}`} onClick={() => setEditing(i)}>
-                  <Pencil className="size-4" />
-                </Button>
-              </div>
-            )
-          })}
-        </Card>
+              )
+            })}
+          </Card>
+          <Pagination {...ingredientsPage} />
+        </>
       )}
 
       <AdjustModal ingredient={editing} onClose={() => setEditing(null)} />

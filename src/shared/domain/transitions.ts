@@ -1,4 +1,4 @@
-import { priceHistory } from './prices'
+import { lineChange, priceHistory } from './prices'
 import { needsForSales } from './recipes'
 import { packTotal } from './stock'
 import type {
@@ -58,11 +58,14 @@ export function confirmNote(state: AppState, draft: NoteDraft): { state: AppStat
     }
     const target = ingredients.find((i) => i.id === id)
     const total = packTotal(line)
+    // Se guarda la variación de precio en el albarán, comparada con lo que había antes de confirmarlo.
+    const known = state.ingredients.find((i) => i.id === id)
+    const priceChange = lineChange(line, state.notes, { date: draft.date || '9999-12-31', fallback: known?.costPerUnit })
     if (target) {
       target.stock = round(target.stock + total)
       movements.push(movement(target.id, total, 'albaran', label))
     }
-    return { ...line, ingredientId: id, newIngredient: null }
+    return { ...line, ingredientId: id, newIngredient: null, priceChange }
   })
 
   const note: DeliveryNote = {
@@ -105,7 +108,13 @@ export function updateNote(state: AppState, updated: DeliveryNote): AppState {
     movements.push(movement(i.id, d, 'ajuste', label))
     return { ...i, stock: Math.max(0, round(i.stock + d)) }
   })
-  const notes = state.notes.map((n) => (n.id === updated.id ? updated : n))
+  // Se recalcula la variación guardada; si se comparaba con el último coste conocido, se conserva ese precio.
+  const lines = updated.lines.map((l) => {
+    const before = old.lines.find((o) => o.id === l.id)?.priceChange
+    const fallback = before && !before.previousDate ? before.previous : undefined
+    return { ...l, priceChange: lineChange(l, state.notes, { date: updated.date, noteId: updated.id, fallback }) }
+  })
+  const notes = state.notes.map((n) => (n.id === updated.id ? { ...updated, lines } : n))
   return {
     ...state,
     ingredients: withLatestCosts(ingredients, notes),

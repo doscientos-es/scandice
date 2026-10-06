@@ -7,6 +7,7 @@ import { maxPortions, recipeCost } from '@/shared/domain/recipes'
 import { formatMoney, formatQty, unitMeta } from '@/shared/domain/units'
 import { useAppState } from '@/shared/store/store'
 import { ExportActions } from '@/shared/ui/export-actions'
+import { Pagination, usePagination } from '@/shared/ui/pagination'
 import { Badge, Card, EmptyState, PageHeader, Tabs, buttonStyles, cn } from '@/shared/ui/primitives'
 
 interface RecipesSearch {
@@ -30,7 +31,7 @@ function RecipesPage() {
   const list = state.recipes.filter(
     (r) => !tipo || r.kind === (tipo === 'final' ? 'final' : 'intermediate'),
   )
-
+  const pageData = usePagination(list, tipo ?? 'todas')
 
   return (
     <>
@@ -83,56 +84,59 @@ function RecipesPage() {
           Crea la primera para calcular costes y raciones.
         </EmptyState>
       ) : (
-        <Card className="divide-y divide-line overflow-hidden">
-          {list.map((r) => {
-            const { portions, limiting } = maxPortions(r, state.recipes, state.ingredients)
-            const cost = recipeCost(r, state.recipes, state.ingredients) / r.yieldQty
-            const final = r.kind === 'final'
-            return (
-              <Link
-                key={r.id}
-                to="/recetas/$recetaId"
-                params={{ recetaId: r.id }}
-                className="grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-1 px-5 py-4 transition-colors hover:bg-subtle sm:grid-cols-[2fr_1fr_1fr]"
-              >
-                <div className="min-w-0">
-                  <p className="flex items-center gap-2 font-medium">
-                    <span className="truncate">{r.name}</span>
-                    {!final && <Badge>Intermedia</Badge>}
-                  </p>
-                  <p className="text-xs text-muted">
-                    {r.items.length} ingredientes · rinde {formatQty(r.yieldQty, r.unit)}
-                  </p>
-                </div>
-                <div className="text-right sm:text-left">
-                  <p className="tabular text-sm font-medium">
-                    {portions} <span className="font-normal text-muted">{final ? 'raciones' : 'tandas'}</span>
-                  </p>
-                  {limiting && portions < 10 && (
-                    <p className="truncate text-xs text-warn">Limita {limiting.name}</p>
-                  )}
-                </div>
-                <div className="col-span-2 text-sm text-muted sm:col-span-1 sm:text-right">
-                  {final ? (
-                    <>
-                      <span className="tabular font-medium text-ink">{formatMoney(r.price)}</span>
-                      <span className="tabular text-xs"> · coste {formatMoney(cost)}</span>
-                      {r.price > 0 && (
-                        <Badge tone={margin(r.price, cost) >= 0.6 ? 'ok' : margin(r.price, cost) >= 0.3 ? 'warn' : 'bad'}>
-                          {Math.round(margin(r.price, cost) * 100)} %
-                        </Badge>
-                      )}
-                    </>
-                  ) : (
-                    <span className="tabular text-xs">
-                      {formatMoney(cost * unitMeta[r.unit].scale)} / {unitMeta[r.unit].bigLabel}
-                    </span>
-                  )}
-                </div>
-              </Link>
-            )
-          })}
-        </Card>
+        <>
+          <Card className="divide-y divide-line overflow-hidden">
+            {pageData.items.map((r) => {
+              const { portions, limiting } = maxPortions(r, state.recipes, state.ingredients)
+              const cost = recipeCost(r, state.recipes, state.ingredients) / r.yieldQty
+              const final = r.kind === 'final'
+              return (
+                <Link
+                  key={r.id}
+                  to="/recetas/$recetaId"
+                  params={{ recetaId: r.id }}
+                  className="grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-1 px-5 py-4 transition-colors hover:bg-subtle sm:grid-cols-[2fr_1fr_1fr]"
+                >
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-2 font-medium">
+                      <span className="truncate">{r.name}</span>
+                      {!final && <Badge>Intermedia</Badge>}
+                    </p>
+                    <p className="text-xs text-muted">
+                      {r.items.length} ingredientes · rinde {formatQty(r.yieldQty, r.unit)}
+                    </p>
+                  </div>
+                  <div className="text-right sm:text-left">
+                    <p className="tabular text-sm font-medium">
+                      {portions} <span className="font-normal text-muted">{final ? 'raciones' : 'tandas'}</span>
+                    </p>
+                    {limiting && portions < 10 && (
+                      <p className="truncate text-xs text-warn">Limita {limiting.name}</p>
+                    )}
+                  </div>
+                  <div className="col-span-2 text-sm text-muted sm:col-span-1 sm:text-right">
+                    {final ? (
+                      <>
+                        <span className="tabular font-medium text-ink">{formatMoney(r.price)}</span>
+                        <span className="tabular text-xs"> · coste {formatMoney(cost)}</span>
+                        {r.price > 0 && (
+                          <Badge tone={margin(r.price, cost) >= 0.6 ? 'ok' : margin(r.price, cost) >= 0.3 ? 'warn' : 'bad'}>
+                            {Math.round(margin(r.price, cost) * 100)} %
+                          </Badge>
+                        )}
+                      </>
+                    ) : (
+                      <span className="tabular text-xs">
+                        {formatMoney(cost * unitMeta[r.unit].scale)} / {unitMeta[r.unit].bigLabel}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              )
+            })}
+          </Card>
+          <Pagination {...pageData} />
+        </>
       )}
     </>
   )
