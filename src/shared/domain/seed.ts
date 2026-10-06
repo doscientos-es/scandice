@@ -141,7 +141,6 @@ const recipes: Recipe[] = [
 ]
 
 export const createSeedState = (): AppState => ({
-  role: null,
   ingredients: structuredClone(ingredients),
   recipes: structuredClone(recipes),
   notes: [],

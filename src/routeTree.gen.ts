@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as RolRouteImport } from './routes/rol'
 import { Route as StockRouteImport } from './routes/stock'
 import { Route as VentasRouteImport } from './routes/ventas'
 import { Route as AlbaranesIndexRouteImport } from './routes/albaranes.index'
@@ -24,11 +23,6 @@ import { Route as RecetasNuevaRouteImport } from './routes/recetas.nueva'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RolRoute = RolRouteImport.update({
-  id: '/rol',
-  path: '/rol',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StockRoute = StockRouteImport.update({
@@ -80,7 +74,6 @@ const RecetasNuevaRoute = RecetasNuevaRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/rol': typeof RolRoute
   '/stock': typeof StockRoute
   '/ventas': typeof VentasRoute
   '/albaranes/$albaranId': typeof AlbaranesAlbaranIdRoute
@@ -93,7 +86,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/rol': typeof RolRoute
   '/stock': typeof StockRoute
   '/ventas': typeof VentasRoute
   '/albaranes/$albaranId': typeof AlbaranesAlbaranIdRoute
@@ -107,7 +99,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/rol': typeof RolRoute
   '/stock': typeof StockRoute
   '/ventas': typeof VentasRoute
   '/albaranes/$albaranId': typeof AlbaranesAlbaranIdRoute
@@ -122,7 +113,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/rol'
     | '/stock'
     | '/ventas'
     | '/albaranes/$albaranId'
@@ -135,7 +125,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/rol'
     | '/stock'
     | '/ventas'
     | '/albaranes/$albaranId'
@@ -148,7 +137,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/rol'
     | '/stock'
     | '/ventas'
     | '/albaranes/$albaranId'
@@ -162,7 +150,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  RolRoute: typeof RolRoute
   StockRoute: typeof StockRoute
   VentasRoute: typeof VentasRoute
   AlbaranesAlbaranIdRoute: typeof AlbaranesAlbaranIdRoute
@@ -181,13 +168,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/rol': {
-      id: '/rol'
-      path: '/rol'
-      fullPath: '/rol'
-      preLoaderRoute: typeof RolRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stock': {
@@ -258,7 +238,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  RolRoute: RolRoute,
   StockRoute: StockRoute,
   VentasRoute: VentasRoute,
   AlbaranesAlbaranIdRoute: AlbaranesAlbaranIdRoute,

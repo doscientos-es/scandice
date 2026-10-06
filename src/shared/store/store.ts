@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 
 import { createSeedState } from '../domain/seed'
 import * as t from '../domain/transitions'
-import type { AppState, DeliveryNote, NoteDraft, Recipe, Role, SaleLine } from '../domain/types'
+import type { AppState, DeliveryNote, NoteDraft, Recipe, SaleLine } from '../domain/types'
 
 /**
  * Persistencia 100 % local (demo). Cuando se conecte Supabase, solo hay que
@@ -46,7 +46,6 @@ export function useAppState(): AppState {
 }
 
 export const actions = {
-  setRole: (role: Role | null) => commit({ ...state, role }),
   confirmNote: (draft: NoteDraft): DeliveryNote => {
     const result = t.confirmNote(state, draft)
     commit(result.state)
@@ -59,8 +58,8 @@ export const actions = {
     commit(t.adjustIngredient(state, id, patch)),
   saveRecipe: (recipe: Recipe) => commit(t.saveRecipe(state, recipe)),
   deleteRecipe: (id: string) => commit(t.deleteRecipe(state, id)),
-  /** Deshace la última acción volviendo a una foto previa del estado (conserva el rol actual). */
-  restore: (snapshot: AppState) => commit({ ...snapshot, role: state.role }),
-  /** Vuelve a los datos de ejemplo conservando el rol elegido. */
-  resetDemo: () => commit({ ...createSeedState(), role: state.role }),
+  /** Deshace la última acción volviendo a una foto previa del estado. */
+  restore: (snapshot: AppState) => commit(snapshot),
+  /** Vuelve a los datos de ejemplo. */
+  resetDemo: () => commit(createSeedState()),
 }

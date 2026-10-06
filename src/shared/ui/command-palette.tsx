@@ -2,7 +2,6 @@ import { useNavigate } from '@tanstack/react-router'
 import { Package, Search } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { roleById } from '../domain/roles'
 import { useAppState } from '../store/store'
 import { cn } from './primitives'
 
@@ -52,26 +51,21 @@ export function CommandPalette() {
   }, [open])
 
   const commands = useMemo<Command[]>(() => {
-    const sections = new Set(roleById(state.role)?.sections ?? [])
     const go = (to: string, search?: Record<string, string>) => () =>
       void navigate({ to, search } as never)
-    const list: Command[] = []
-    if (sections.has('inicio')) list.push({ id: 'inicio', label: 'Ir a Inicio', hint: 'Navegar', run: go('/') })
-    if (sections.has('albaranes')) {
-      list.push({ id: 'albaranes', label: 'Ir a Albaranes', hint: 'Navegar', run: go('/albaranes') })
-      list.push({ id: 'escanear', label: 'Escanear albarán', hint: 'Acción', run: go('/albaranes/nuevo') })
-    }
-    if (sections.has('stock')) list.push({ id: 'stock', label: 'Ir a Stock', hint: 'Navegar', run: go('/stock') })
-    if (sections.has('recetas')) {
-      list.push({ id: 'recetas', label: 'Ir a Recetas', hint: 'Navegar', run: go('/recetas') })
-      list.push({ id: 'nueva-receta', label: 'Nueva receta', hint: 'Acción', run: go('/recetas/nueva') })
-    }
-    if (sections.has('ventas')) list.push({ id: 'ventas', label: 'Registrar ventas', hint: 'Acción', run: go('/ventas') })
-    if (sections.has('stock'))
-      for (const i of state.ingredients)
-        list.push({ id: `ing-${i.id}`, label: i.name, hint: 'Ingrediente', run: go('/stock', { q: i.name }) })
+    const list: Command[] = [
+      { id: 'inicio', label: 'Ir a Inicio', hint: 'Navegar', run: go('/') },
+      { id: 'albaranes', label: 'Ir a Albaranes', hint: 'Navegar', run: go('/albaranes') },
+      { id: 'escanear', label: 'Escanear albarán', hint: 'Acción', run: go('/albaranes/nuevo') },
+      { id: 'stock', label: 'Ir a Stock', hint: 'Navegar', run: go('/stock') },
+      { id: 'recetas', label: 'Ir a Recetas', hint: 'Navegar', run: go('/recetas') },
+      { id: 'nueva-receta', label: 'Nueva receta', hint: 'Acción', run: go('/recetas/nueva') },
+      { id: 'ventas', label: 'Registrar ventas', hint: 'Acción', run: go('/ventas') },
+    ]
+    for (const i of state.ingredients)
+      list.push({ id: `ing-${i.id}`, label: i.name, hint: 'Ingrediente', run: go('/stock', { q: i.name }) })
     return list
-  }, [state.role, state.ingredients, navigate])
+  }, [state.ingredients, navigate])
 
   const q = query.trim().toLowerCase()
   const results = (q ? commands.filter((c) => c.label.toLowerCase().includes(q)) : commands).slice(0, 8)

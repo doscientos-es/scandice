@@ -56,7 +56,7 @@ function NotesPage() {
             />
           </div>
           <Select
-            className="sm:w-auto"
+            className="sm:w-auto!"
             aria-label="Periodo"
             value={period}
             onChange={(e) => setPeriod(e.target.value as typeof period)}

@@ -18,15 +18,16 @@ import { toast } from '@/shared/ui/toast'
 interface StockSearch {
   q?: string
   estado?: 'todos' | 'bajo'
-  vista?: 'ingredientes' | 'movimientos' | 'compra'
+  vista?: 'ingredientes' | 'movimientos'
   orden?: 'estado' | 'stock'
 }
 
 export const Route = createFileRoute('/stock')({
   validateSearch: (s: StockSearch): StockSearch => ({
     q: s.q ? String(s.q) : undefined,
-    estado: s.estado === 'bajo' ? 'bajo' : undefined,
-    vista: s.vista === 'movimientos' || s.vista === 'compra' ? s.vista : undefined,
+    // `vista=compra` era la antigua pestaña «Lista de la compra»: ahora vive en «Stock bajo».
+    estado: s.estado === 'bajo' || (s.vista as string) === 'compra' ? 'bajo' : undefined,
+    vista: s.vista === 'movimientos' ? s.vista : undefined,
     orden: s.orden === 'estado' || s.orden === 'stock' ? s.orden : undefined,
   }),
   component: StockPage,
@@ -64,35 +65,41 @@ function StockPage() {
   const set = (patch: Partial<StockSearch>) =>
     void navigate({ search: (prev) => ({ ...prev, ...patch }), replace: true })
 
-  const shopping = shoppingList(state.ingredients)
-  const shoppingTotal = shopping.reduce((sum, s) => sum + s.cost, 0)
+  // Cantidad sugerida a pedir y coste de cada ingrediente en stock bajo.
+  const orderOf = new Map(shoppingList(state.ingredients).map((s) => [s.ingredient.id, s]))
+  const orderTotal = rows.reduce((sum, i) => sum + (orderOf.get(i.id)?.cost ?? 0), 0)
+  const cols = onlyLow
+    ? 'sm:grid-cols-[1.4fr_1fr_8rem_7rem_2.5rem]'
+    : 'sm:grid-cols-[1.4fr_1fr_8rem_2.5rem]'
 
   const ingredientsPage = usePagination(rows, `${q}|${onlyLow}|${search.orden}`)
-  const shoppingPage = usePagination(shopping, 'compra')
   const movementsPage = usePagination(state.movements, 'movimientos')
 
-  const tabValue = vista === 'movimientos' || vista === 'compra' ? vista : onlyLow ? 'bajo' : 'todos'
-  const onTab = (id: 'todos' | 'bajo' | 'movimientos' | 'compra') =>
+  const tabValue = vista === 'movimientos' ? vista : onlyLow ? 'bajo' : 'todos'
+  const onTab = (id: 'todos' | 'bajo' | 'movimientos') =>
     set(
-      id === 'movimientos' || id === 'compra'
+      id === 'movimientos'
         ? { vista: id }
         : { vista: undefined, estado: id === 'bajo' ? 'bajo' : undefined },
     )
 
   const exportCsv = () => {
-    if (vista === 'compra') {
-      downloadCsv(`lista-compra-${todayStamp()}`, [
+    if (vista === 'ingredientes' && onlyLow) {
+      downloadCsv(`stock-bajo-${todayStamp()}`, [
         ['Ingrediente', 'Unidad', 'Stock', 'Mínimo', 'A pedir', 'Coste estimado'],
-        ...shopping.map((s) => [
-          s.ingredient.name,
-          s.ingredient.unit,
-          s.ingredient.stock,
-          s.ingredient.minStock,
-          s.toOrder,
-          Math.round(s.cost * 100) / 100,
-        ]),
+        ...rows.map((i) => {
+          const order = orderOf.get(i.id)
+          return [
+            i.name,
+            i.unit,
+            i.stock,
+            i.minStock,
+            order?.toOrder ?? '',
+            order ? Math.round(order.cost * 100) / 100 : '',
+          ]
+        }),
       ])
-      toast('Lista de la compra exportada', { description: `${shopping.length} ingredientes en CSV.` })
+      toast('Stock bajo exportado', { description: `${rows.length} ingredientes en CSV.` })
       return
     }
     if (vista === 'movimientos') {
@@ -127,7 +134,6 @@ function StockPage() {
           options={[
             { id: 'todos', label: 'Todos', count: state.ingredients.length },
             { id: 'bajo', label: 'Stock bajo', count: state.ingredients.filter((i) => stockLevel(i) !== 'ok').length },
-            { id: 'compra', label: 'Lista de la compra', count: shopping.length },
             { id: 'movimientos', label: 'Movimientos' },
           ]}
         />
@@ -145,7 +151,7 @@ function StockPage() {
               />
             </div>
             <Select
-              className="w-auto shrink-0"
+              className="w-auto! shrink-0"
               aria-label="Ordenar"
               value={search.orden ?? ''}
               onChange={(e) => set({ orden: (e.target.value || undefined) as StockSearch['orden'] })}
@@ -158,37 +164,7 @@ function StockPage() {
         )}
       </div>
 
-      {vista === 'compra' ? (
-        shopping.length === 0 ? (
-          <EmptyState title="No hace falta pedir nada" icon={<Search className="size-5" />}>
-            Todos los ingredientes están por encima del mínimo.
-          </EmptyState>
-        ) : (
-          <>
-            <Card className="divide-y divide-line overflow-hidden">
-              {shoppingPage.items.map((s) => (
-                <div key={s.ingredient.id} className="flex items-center gap-3 px-5 py-3 text-sm">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{s.ingredient.name}</p>
-                    <p className="text-xs text-muted">
-                      Quedan {formatQty(s.ingredient.stock, s.ingredient.unit)} · mín. {formatQty(s.ingredient.minStock, s.ingredient.unit)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="tabular font-semibold">Pedir {formatQty(s.toOrder, s.ingredient.unit)}</p>
-                    <p className="tabular text-xs text-muted">≈ {formatMoney(s.cost)}</p>
-                  </div>
-                </div>
-              ))}
-              <div className="flex justify-between bg-subtle/60 px-5 py-3 text-sm font-medium">
-                <span>Total estimado</span>
-                <span className="tabular">{formatMoney(shoppingTotal)}</span>
-              </div>
-            </Card>
-            <Pagination {...shoppingPage} />
-          </>
-        )
-      ) : vista === 'movimientos' ? (
+      {vista === 'movimientos' ? (
         <>
           <Card className="divide-y divide-line">
             {state.movements.length === 0 && (
@@ -236,16 +212,18 @@ function StockPage() {
       ) : (
         <>
           <Card className="divide-y divide-line overflow-hidden">
-            <div className="hidden grid-cols-[1.4fr_1fr_8rem_2.5rem] gap-x-4 bg-subtle/60 px-5 py-2 text-xs font-medium text-muted sm:grid">
+            <div className={cn('hidden gap-x-4 bg-subtle/60 px-5 py-2 text-xs font-medium text-muted sm:grid', cols)}>
               <span>Ingrediente</span>
               <span>Stock</span>
               <span>Estado</span>
+              {onlyLow && <span className="text-right">A pedir</span>}
               <span className="sr-only">Acciones</span>
             </div>
             {ingredientsPage.items.map((i) => {
               const badge = levelBadge[stockLevel(i)]
+              const order = orderOf.get(i.id)
               return (
-                <div key={i.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-5 py-3 transition-colors hover:bg-subtle/50 sm:grid-cols-[1.4fr_1fr_8rem_2.5rem]">
+                <div key={i.id} className={cn('grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-5 py-3 transition-colors hover:bg-subtle/50', cols)}>
                   <div className="min-w-0">
                     <Link
                       to="/ingredientes/$ingredientId"
@@ -264,12 +242,30 @@ function StockPage() {
                     <StockBar stock={i.stock} min={i.minStock} />
                   </div>
                   <Badge tone={badge.tone}>{badge.label}</Badge>
+                  {onlyLow && (
+                    <div className="text-right">
+                      {order ? (
+                        <>
+                          <p className="tabular text-sm font-semibold">{formatQty(order.toOrder, i.unit)}</p>
+                          <p className="tabular text-xs text-muted">≈ {formatMoney(order.cost)}</p>
+                        </>
+                      ) : (
+                        <span className="text-xs text-muted">—</span>
+                      )}
+                    </div>
+                  )}
                   <Button variant="ghost" className="print:hidden" aria-label={`Ajustar ${i.name}`} onClick={() => setEditing(i)}>
                     <Pencil className="size-4" />
                   </Button>
                 </div>
               )
             })}
+            {onlyLow && (
+              <div className="flex justify-between bg-subtle/60 px-5 py-3 text-sm font-medium">
+                <span>Total estimado a pedir</span>
+                <span className="tabular">{formatMoney(orderTotal)}</span>
+              </div>
+            )}
           </Card>
           <Pagination {...ingredientsPage} />
         </>

@@ -4,8 +4,6 @@ import type { PriceChange } from './prices'
 /** Unidad mínima de stock. Todo se guarda siempre en esta unidad. */
 export type Unit = 'ud' | 'g' | 'ml'
 
-export type Role = 'propietario' | 'cocina' | 'encargado'
-
 export interface Ingredient {
   id: string
   name: string
@@ -97,7 +95,6 @@ export interface Sale {
 }
 
 export interface AppState {
-  role: Role | null
   ingredients: Ingredient[]
   recipes: Recipe[]
   notes: DeliveryNote[]

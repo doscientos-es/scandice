@@ -2,7 +2,6 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { AlertTriangle, ChefHat, ReceiptText, ScanLine, ShoppingBag } from 'lucide-react'
 import { useMemo } from 'react'
 
-import { canAccess, roleById } from '@/shared/domain/roles'
 import { maxPortions } from '@/shared/domain/recipes'
 import { isLowOrOut } from '@/shared/domain/stock'
 import { recentRises } from '@/shared/domain/prices'
@@ -14,7 +13,6 @@ export const Route = createFileRoute('/')({ component: Dashboard })
 
 function Dashboard() {
   const state = useAppState()
-  const role = roleById(state.role)
   const low = state.ingredients.filter(isLowOrOut)
   const finals = useMemo(
     () =>
@@ -28,18 +26,17 @@ function Dashboard() {
   const stockValue = state.ingredients.reduce((sum, i) => sum + i.stock * i.costPerUnit, 0)
 
   const actions = [
-    { to: '/albaranes/nuevo', label: 'Escanear albarán', icon: ScanLine, section: 'albaranes', primary: true },
-    { to: '/ventas', label: 'Registrar ventas', icon: ShoppingBag, section: 'ventas' },
-    { to: '/recetas/nueva', label: 'Nueva receta', icon: ChefHat, section: 'recetas' },
+    { to: '/albaranes/nuevo', label: 'Escanear albarán', icon: ScanLine, primary: true },
+    { to: '/ventas', label: 'Registrar ventas', icon: ShoppingBag },
+    { to: '/recetas/nueva', label: 'Nueva receta', icon: ChefHat },
   ] as const
 
   return (
     <>
       <PageHeader
-        title={`Hola, ${role?.label.toLowerCase()}`}
+        title="Hola"
         description="Resumen de cómo está la cocina ahora mismo."
         actions={actions
-          .filter((a) => canAccess(state.role, a.section))
           .map(({ to, label, icon: Icon, ...a }) => (
             <Link key={to} to={to} className={buttonStyles('primary' in a ? 'primary' : 'secondary')}>
               <Icon className="size-4" />
@@ -90,7 +87,7 @@ function Dashboard() {
               ))}
             </ul>
           )}
-          {low.length > 0 && canAccess(state.role, 'albaranes') && (
+          {low.length > 0 && (
             <Link to="/albaranes/nuevo" className={buttonStyles('secondary', 'md', 'mt-4 w-full')}>
               <ScanLine className="size-4" /> Reponer: escanear albarán
             </Link>
@@ -101,22 +98,30 @@ function Dashboard() {
           <h2 className="mb-3 border-b border-line pb-3 text-sm font-semibold">Qué puedes cocinar ahora</h2>
           <ul className="divide-y divide-line">
             {finals.map(({ recipe, portions, limiting }) => (
-              <li key={recipe.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{recipe.name}</p>
-                  {limiting && portions < 10 && (
-                    <p className="text-xs text-muted">Limita: {limiting.name}</p>
-                  )}
-                </div>
-                <Badge tone={portions === 0 ? 'bad' : portions < 5 ? 'warn' : 'ok'}>
-                  {portions} raciones
-                </Badge>
+              <li key={recipe.id}>
+                <Link
+                  to="/recetas/$recetaId"
+                  params={{ recetaId: recipe.id }}
+                  className="group flex items-center justify-between gap-3 py-2.5 text-sm"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium group-hover:text-brand group-hover:underline">
+                      {recipe.name}
+                    </p>
+                    {limiting && portions < 10 && (
+                      <p className="text-xs text-muted">Limita: {limiting.name}</p>
+                    )}
+                  </div>
+                  <Badge tone={portions === 0 ? 'bad' : portions < 5 ? 'warn' : 'ok'}>
+                    {portions} raciones
+                  </Badge>
+                </Link>
               </li>
             ))}
           </ul>
         </section>
 
-        {canAccess(state.role, 'albaranes') && rises.length > 0 && (
+        {rises.length > 0 && (
           <section className="lg:col-span-2">
             <h2 className="mb-1 border-b border-line pb-3 text-sm font-semibold">Subidas de precio</h2>
             <ul className="divide-y divide-line">
@@ -142,7 +147,7 @@ function Dashboard() {
           </section>
         )}
 
-        {canAccess(state.role, 'albaranes') && (
+        {(
           <section className="lg:col-span-2">
             <div className="mb-1 flex items-center justify-between border-b border-line pb-3">
               <h2 className="text-sm font-semibold">Últimos albaranes</h2>
